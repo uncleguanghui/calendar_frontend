@@ -1,5 +1,5 @@
 <template>
-  <div class="page">© 2020 Guanghui</div>
+  <div class="page">日历主体</div>
 </template>
 
 <script>

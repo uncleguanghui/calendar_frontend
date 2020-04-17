@@ -1,5 +1,5 @@
 <template>
-  <div class="page">菜单</div>
+  <div class="page">信息流</div>
 </template>
 
 <script>

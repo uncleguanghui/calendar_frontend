@@ -1,6 +1,5 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
-import Home from "../views/Home.vue";
 import NProgress from "nprogress";
 import "nprogress/nprogress.css"; // 进度条样式
 
@@ -22,16 +21,14 @@ const routes = [
         path: "/user/login",
         name: "login",
         component: () =>
-          import(/* webpackChunkName: "login" */ "../views/User/Login.vue")
+          import(/* webpackChunkName: "login" */ "../views/User/Login")
       },
       // 注册页
       {
         path: "/user/register",
         name: "register",
         component: () =>
-          import(
-            /* webpackChunkName: "register" */ "../views/User/Register.vue"
-          )
+          import(/* webpackChunkName: "register" */ "../views/User/Register")
       }
     ]
   },
@@ -39,8 +36,24 @@ const routes = [
   // 首页
   {
     path: "/",
-    name: "Home",
-    component: Home
+    component: () =>
+      import(/* webpackChunkName: "layout" */ "../layouts/BasicLayout"),
+    children: [
+      // 重定向
+      {
+        path: "/",
+        redirect: "/calendar"
+      },
+      // 日历
+      {
+        path: "/calendar",
+        name: "calendar",
+        component: () =>
+          import(
+            /* webpackChunkName: "calendar" */ "../views/Calendar/Calendar"
+          )
+      }
+    ]
   },
 
   // Exception
