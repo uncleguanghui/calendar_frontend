@@ -49,9 +49,20 @@ const routes = [
         path: "/calendar",
         name: "calendar",
         component: () =>
-          import(
-            /* webpackChunkName: "calendar" */ "../views/Calendar/Calendar"
-          )
+          import(/* webpackChunkName: "calendar" */ "../views/Calendar")
+      },
+      // 帮助
+      {
+        path: "/help",
+        name: "help",
+        component: () => import(/* webpackChunkName: "help" */ "../views/Help")
+      },
+      // 关于
+      {
+        path: "/about",
+        name: "about",
+        component: () =>
+          import(/* webpackChunkName: "about" */ "../views/About")
       }
     ]
   },
