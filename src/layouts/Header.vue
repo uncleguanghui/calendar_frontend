@@ -8,12 +8,13 @@
         <a-menu
           theme="light"
           mode="horizontal"
-          :defaultSelectedKeys="['1']"
+          :defaultSelectedKeys="['/calendar']"
           :style="{ lineHeight: '64px', textAlign: 'left' }"
+          @click="clickHandle"
         >
-          <a-menu-item key="1">日历</a-menu-item>
-          <a-menu-item key="2">帮助</a-menu-item>
-          <a-menu-item key="3">关于</a-menu-item>
+          <a-menu-item key="/calendar">日历</a-menu-item>
+          <a-menu-item key="/help">帮助</a-menu-item>
+          <a-menu-item key="/about">关于</a-menu-item>
         </a-menu>
       </a-col>
       <a-col :span="2">通知</a-col>
@@ -26,6 +27,11 @@
 export default {
   data() {
     return {};
+  },
+  methods: {
+    clickHandle({ key }) {
+      this.$router.push(key);
+    }
   }
 };
 </script>
