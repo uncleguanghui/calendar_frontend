@@ -15,6 +15,7 @@
           @click="clickHandle"
         >
           <a-menu-item key="/calendar">日历</a-menu-item>
+          <a-menu-item key="/todolist">清单</a-menu-item>
           <a-menu-item key="/help">帮助</a-menu-item>
           <a-menu-item key="/about">关于</a-menu-item>
         </a-menu>

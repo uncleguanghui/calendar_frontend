@@ -7,7 +7,7 @@
         zIndex: 1,
         width: '100%',
         background: '#fff',
-        borderBottom: '1px solid #e8e8e8'
+        borderBottom: '2px solid #e8e8e8'
       }"
     >
       <Header />

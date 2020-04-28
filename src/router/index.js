@@ -52,6 +52,13 @@ const routes = [
         component: () =>
           import(/* webpackChunkName: "calendar" */ "../views/Calendar")
       },
+      // 清单
+      {
+        path: "/todolist",
+        name: "todolist",
+        component: () =>
+          import(/* webpackChunkName: "todolist" */ "../views/TodoList")
+      },
       // 帮助
       {
         path: "/help",
