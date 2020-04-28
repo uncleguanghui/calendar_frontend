@@ -7,7 +7,7 @@
       :header="false"
       :plugins="calendarPlugins"
       :locale="locale"
-      :columnHeaderText="columnHeaderText"
+      :columnHeaderHtml="columnHeaderHtml"
       :dayRender="dayRender"
       height="parent"
       @dateClick="dateClick"
@@ -67,8 +67,16 @@ export default {
       this.elFocusOn = undefined;
     },
     // 周标题文本
-    columnHeaderText(date) {
-      return this.dayNames[date.getDay()];
+    columnHeaderHtml(date) {
+      if (date.getDay() == 0 || date.getDay() == 6) {
+        return (
+          '<span class="font-weekend">' +
+          this.dayNames[date.getDay()] +
+          "</span>"
+        );
+      } else {
+        return this.dayNames[date.getDay()];
+      }
     },
     // 获取父元素
     getParent(el, tagName, include = "") {
@@ -118,12 +126,12 @@ export default {
     dayRender(dayRenderInfo) {
       if (dayRenderInfo.date.getDate() > 0) {
         // 日期处理
+        // 是周末吗
+        var isWeekend =
+          dayRenderInfo.date.getDay() == 0 || dayRenderInfo.date.getDay() == 6;
         // 是今天吗
         var isToday =
           dayRenderInfo.date.toDateString() == new Date().toDateString();
-        // 是本月吗
-        var isCurrentMonth =
-          new Date().getMonth() == dayRenderInfo.date.getMonth();
         // 今天是几月第几个周期
         var weekdayNumString = this.weekdayNum(dayRenderInfo.date);
         // 格式化后的公历日期
@@ -163,38 +171,19 @@ export default {
         // 设置标题行的内容与样式;
         tdHead.innerHTML = `
         <div>
-          <span class="${
-            isCurrentMonth
-              ? "font-date-current-month"
-              : "font-date-not-current-month"
-          }">
-              ${dayRenderInfo.date.getDate()}
+          <span class="font-date">
+            <span class="${isWeekend ? "font-weekend" : ""}">
+                ${dayRenderInfo.date.getDate()}
+            </span>
           </span>
           <div class="right-top">
             <span class="font-lunar">
               ${lunarString}
             </span>
-            <span class="${
-              festival
-                ? isCurrentMonth
-                  ? "font-festival-current-month"
-                  : "font-festival-not-current-month"
-                : "font-no-festival"
-            }">
+            <span class="${festival ? "font-festival" : "font-no-festival"}">
                 ${festival}
             </span>
           </div>
-          <!-- 
-          <span class="${
-            workEvent
-              ? workEvent == "班"
-                ? "font-work"
-                : "font-relax"
-              : "font-hidden"
-          }">
-            ${workEvent}
-          </span>
-          -->
         </div>
         `;
 
@@ -203,19 +192,15 @@ export default {
         dayRenderInfo.el.innerHTML = `
         <div class="${isToday ? "border-today" : "border-not-today"}">
           <div class="${
-            workEvent ? (workEvent == "班" ? "bg-work" : "bg-relax") : ""
+            workEvent
+              ? workEvent == "班"
+                ? "triangle-work"
+                : "triangle-relax"
+              : "font-hidden"
           }">
-            <div class="${
-              workEvent
-                ? workEvent == "班"
-                  ? "triangle-work"
-                  : "triangle-relax"
-                : "font-hidden"
-            }">
-              <span class="font-work-event">
-                ${workEvent}
-              </span>
-            </div>
+            <span class="font-work-event">
+              ${workEvent}
+            </span>
           </div>
         </div>
         `;
@@ -353,8 +338,7 @@ td {
 
 /* 日期 */
 
-.font-date-current-month,
-.font-date-not-current-month {
+.font-date {
   position: absolute;
   font-size: 36px;
   float: left;
@@ -363,8 +347,10 @@ td {
   color: #989898;
 }
 
-.font-date-not-current-month {
-  color: #bdbdbd;
+/* 周末 */
+
+.font-weekend {
+  color: #ff7c7c;
 }
 
 /* 右上角 */
@@ -386,15 +372,10 @@ td {
 
 /* 右上角：节日 */
 
-.font-festival-current-month,
-.font-festival-not-current-month {
+.font-festival {
   font-size: 8px;
   line-height: 1;
-  color: #ff8282;
-}
-
-.font-festival-not-current-month {
-  color: #ffb1b1;
+  color: rgb(107, 190, 107);
 }
 
 .font-no-festival {
@@ -402,16 +383,6 @@ td {
 }
 
 /* 背景 */
-
-.bg-work {
-  height: 100%;
-  background-color: #e9e9e9;
-}
-
-.bg-relax {
-  height: 100%;
-  background-color: #ffe1e1;
-}
 
 .border-today,
 .border-not-today {
