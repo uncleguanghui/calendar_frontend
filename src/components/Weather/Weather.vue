@@ -36,8 +36,7 @@ export default {
   components: { Wave },
   props: {
     date: {
-      required: true,
-      default: () => new Date()
+      required: true
     }
   },
   data() {
@@ -73,10 +72,16 @@ export default {
     getWeatherImage(weather) {
       if (weather) {
         return this.publicPath + "images/" + "image(11).jpg";
+      } else {
+        return this.publicPath + "images/" + "image(11).jpg";
       }
     },
     // 根据名称获取图标
     getWeatherIcon(weather) {
+      if (!weather) {
+        return this.publicPath + "weather/" + "未知.png";
+      }
+
       // 对于被匹配的天气字符串 weather ，逐字查找天气图标字典 weatherDict ，直到找到匹配结果
       var iconList = [];
       for (let key of weather) {
@@ -130,11 +135,19 @@ export default {
       const keyToday = this.dateFormat("Y-mm-dd", new Date());
       const ds = this.nextDates(this.date, days);
       var results = [];
-      for (let d of ds) {
+      for (const [index, d] of ds.entries()) {
         // 获取当日的天气详情
         const key = this.dateFormat("Y-mm-dd", d);
-        var info = this.$store.state.weatherFuture[key] || {};
-        info.day = key == keyToday ? "今日" : "周" + this.dayNames[d.getDay()]; // 设日期title
+        var info =
+          this.$store.state.weatherFuture[key] ||
+          this.$store.state.weatherHistory[key] ||
+          {};
+        info.day =
+          index == 0
+            ? key == keyToday
+              ? "今天"
+              : "当天"
+            : "周" + this.dayNames[d.getDay()]; // 设日期title
         results = [...results, info];
       }
 
@@ -144,7 +157,11 @@ export default {
   computed: {
     cityTodayInfo() {
       const key = this.dateFormat("Y-mm-dd", this.date);
-      const t = this.$store.state.weatherFuture[key];
+      const t = this.$store.state.weatherFuture[key] ||
+        this.$store.state.weatherHistory[key] || {
+          温度: "？℃",
+          天气: "未知"
+        };
       return {
         temperature: t
           ? t["温度"].split("/")[0].replace("℃", "") + "°"
