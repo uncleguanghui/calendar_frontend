@@ -131,13 +131,17 @@ export default {
         var dateFullString = this.dateFormat("Y-mm-dd", dayRenderInfo.date);
         // 农历
         var lunarDate = chineseLunar.solarToLunar(dayRenderInfo.date);
-        // 格式化后的农历
         var lunarString = chineseLunar.format(lunarDate, "D");
+        // 格式化后的农历
+        var lunarDateString = this.dateFormat(
+          "mm-dd",
+          new Date(2020, lunarDate.month - 1, lunarDate.day)
+        );
 
         // 显示的节日
         var solarTerm = this.$store.state.solarTerms[dateFullString]; // 节气
         var solarFestival = this.$store.state.solarFestival[dateString]; // 公历节日
-        var lunarFestival = this.$store.state.lunarFestival[dateString]; // 农历节日
+        var lunarFestival = this.$store.state.lunarFestival[lunarDateString]; // 农历节日
         var westFestival = this.$store.state.westFestival[weekdayNumString]; // 西方节日
         var festival =
           solarFestival || lunarFestival || westFestival || solarTerm; // 公历节日 > 农历节日 > 西方节日 > 节气
@@ -285,6 +289,10 @@ export default {
 
 @import "~bootstrap/dist/css/bootstrap.css";
 @import "~bootstrap-vue/dist/bootstrap-vue.css";
+
+th.fc-day-header {
+  border: 0;
+}
 
 /* 设置td的内容超过容器以后隐藏 */
 
