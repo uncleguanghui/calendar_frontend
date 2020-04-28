@@ -42,6 +42,7 @@ const routes = [
       // 重定向
       {
         path: "/",
+        name: "home",
         redirect: "/calendar"
       },
       // 日历

@@ -19,7 +19,10 @@ import {
   DatePicker,
   LocaleProvider,
   Notification,
-  Message
+  Message,
+  Tooltip,
+  Card,
+  Avatar
 } from "ant-design-vue";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 
@@ -45,12 +48,16 @@ Vue.use(Divider);
 Vue.use(Switch);
 Vue.use(DatePicker);
 Vue.use(LocaleProvider);
+Vue.use(Tooltip);
+Vue.use(Card);
+Vue.use(Avatar);
 
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 
 Vue.prototype.$message = Message;
 Vue.prototype.$notification = Notification;
+Vue.prototype.$moment = moment;
 
 new Vue({
   router,

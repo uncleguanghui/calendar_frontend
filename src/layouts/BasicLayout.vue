@@ -6,7 +6,8 @@
         position: 'fixed',
         zIndex: 1,
         width: '100%',
-        background: '#fff'
+        background: '#fff',
+        borderBottom: '1px solid #e8e8e8'
       }"
     >
       <Header />
@@ -16,29 +17,28 @@
       <!-- 这样一来，即使内容部分为空，footer也会在页面最底下 -->
       <div
         :style="{
-          padding: '25px',
-          minHeight: 'calc(100vh - 128px)'
+          minHeight: 'calc(100vh - 64px)',
+          background: '#fff'
         }"
       >
         <router-view></router-view>
       </div>
     </a-layout-content>
     <!-- 设置高度为64px，文字居中 -->
-    <a-layout-footer :style="{ textAlign: 'center', height: '64px' }">
+    <!-- <a-layout-footer :style="{ textAlign: 'center', height: '64px' }">
       <Footer />
-    </a-layout-footer>
+    </a-layout-footer> -->
   </a-layout>
 </template>
 
 <script>
 import Header from "./Header";
-import Footer from "./Footer";
 
 export default {
   data() {
     return {};
   },
-  components: { Header, Footer }
+  components: { Header }
 };
 </script>
 

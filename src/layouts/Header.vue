@@ -2,14 +2,16 @@
   <div class="page">
     <a-row type="flex" justify="space-around">
       <a-col :span="4">
-        <div class="logo">Logo</div>
+        <div class="logo">
+          Logo
+        </div>
       </a-col>
       <a-col :span="16">
         <a-menu
           theme="light"
           mode="horizontal"
           :defaultSelectedKeys="['/calendar']"
-          :style="{ lineHeight: '64px', textAlign: 'left' }"
+          :style="{ lineHeight: '62px', textAlign: 'left' }"
           @click="clickHandle"
         >
           <a-menu-item key="/calendar">日历</a-menu-item>
@@ -30,7 +32,9 @@ export default {
   },
   methods: {
     clickHandle({ key }) {
-      this.$router.push(key);
+      if (this.$router.currentRoute.path != key) {
+        this.$router.push(key);
+      }
     }
   }
 };
