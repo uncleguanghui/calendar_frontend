@@ -197,16 +197,16 @@ export default {
 
 .card-image {
   width: 100%;
-  max-height: 300px;
+  max-height: 400px;
   overflow: hidden;
   border-radius: 10px;
 }
 
 .card-info {
   position: absolute;
-  top: 30px;
+  top: 30%;
   left: 50%;
-  transform: translate(-50%, 0px);
+  transform: translate(-50%, -30%);
   color: #fff;
 }
 
