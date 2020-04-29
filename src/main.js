@@ -25,7 +25,7 @@ import {
   Avatar
 } from "ant-design-vue";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
-
+import axios from "axios";
 import moment from "moment";
 import "moment/locale/zh-cn";
 
@@ -58,6 +58,7 @@ Vue.use(IconsPlugin);
 Vue.prototype.$message = Message;
 Vue.prototype.$notification = Notification;
 Vue.prototype.$moment = moment;
+Vue.prototype.$axios = axios;
 
 new Vue({
   router,

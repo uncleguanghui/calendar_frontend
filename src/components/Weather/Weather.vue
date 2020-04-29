@@ -3,23 +3,23 @@
     <a-card :bordered="false">
       <div :style="{ backgroundColor: '#fff' }">
         <div class="card-image">
-          <img :src="cityTodayInfo.weatherImage" width="100%" />
+          <img :src="getWeatherImage(weatherList[0]['天气'])" width="100%" />
         </div>
         <div class="card-wave">
           <wave />
         </div>
         <div class="card-info">
-          <div class="title">{{ cityTodayInfo.weather }}</div>
-          <div class="description">{{ cityTodayInfo.cityName }}</div>
-          <div class="temperature">{{ cityTodayInfo.temperature }}</div>
+          <div class="title">{{ weatherList[0]["天气"] || "未知" }}</div>
+          <div class="description">{{ weatherList[0]["城市"] || "未知" }}</div>
+          <div class="temperature">{{ weatherList[0]["温度"] || "？℃" }}</div>
         </div>
       </div>
       <a-card-grid
         class="card-grid"
-        :key="result.day"
-        v-for="result in nextWeathers()"
+        :key="result['日期']"
+        v-for="result in weatherList"
       >
-        <div class="sub-title">{{ result.day }}</div>
+        <div class="sub-title">{{ result["名称"] }}</div>
         <div class="sub-icon">
           <a-avatar :src="getWeatherIcon(result['天气'])" />
         </div>
@@ -36,17 +36,61 @@ export default {
   components: { Wave },
   props: {
     date: {
-      required: true
+      default: () => new Date()
     }
+  },
+  watch: {
+    date() {
+      // 重新获取天气数据
+      this.getWeatherData();
+    }
+  },
+  mounted() {
+    this.getWeatherData();
   },
   data() {
     return {
       publicPath: process.env.BASE_URL, // public 文件夹的位置
-      dayNames: ["日", "一", "二", "三", "四", "五", "六"]
+      dayNames: ["日", "一", "二", "三", "四", "五", "六"],
+      weatherList: [{}, {}, {}, {}, {}] // 近5天的天气
     };
   },
   methods: {
     // 天气格式化
+    getWeatherData() {
+      const todayString = this.dateFormat("Y-mm-dd", new Date());
+      const dateString = this.dateFormat("Y-mm-dd", this.date);
+
+      this.$axios
+        .get("/api/weather/5days", { params: { date: dateString } })
+        .then(res => {
+          this.weatherList = res.data.map(item => {
+            if (item) {
+              const ws = item["天气"].split("/");
+              item["天气"] = ws[0] === ws[1] ? ws[0] : item["天气"];
+              item["名称"] =
+                item["日期"] === dateString
+                  ? dateString == todayString
+                    ? "今天"
+                    : "当天"
+                  : "周" + this.dayNames[new Date(item["日期"]).getDay()];
+              item["温度"] = item["温度"].split("/")[0].replace("℃", "") + "°";
+              return item;
+            } else {
+              return {};
+            }
+          });
+        })
+        .catch(error => {
+          this.$notification.error({
+            message: error.response.status,
+            description: error.response.statusText
+          });
+          return Promise.reject(error)
+            .then()
+            .catch();
+        });
+    },
     dateFormat(fmt, date) {
       let ret;
       const opt = {
@@ -69,6 +113,7 @@ export default {
       }
       return fmt;
     },
+    // 根据天气名称获取背景图片
     getWeatherImage(weather) {
       if (weather) {
         return this.publicPath + "images/" + "image(11).jpg";
@@ -76,7 +121,7 @@ export default {
         return this.publicPath + "images/" + "image(11).jpg";
       }
     },
-    // 根据名称获取图标
+    // 根据天气名称获取图标
     getWeatherIcon(weather) {
       if (!weather) {
         return this.publicPath + "weather/" + "未知.png";
@@ -119,57 +164,6 @@ export default {
         target = "未知.png";
       }
       return this.publicPath + "weather/" + target;
-    },
-    // 从某天开始获取之后的N天
-    nextDates(date, days) {
-      var dates = [];
-      for (let day = 0; day < days; day++) {
-        var dt = new Date(date);
-        dt.setDate(date.getDate() + day);
-        dates = [...dates, dt];
-      }
-      return dates;
-    },
-    // 获取某天开始之后的N天的天气
-    nextWeathers(days = 5) {
-      const keyToday = this.dateFormat("Y-mm-dd", new Date());
-      const ds = this.nextDates(this.date, days);
-      var results = [];
-      for (const [index, d] of ds.entries()) {
-        // 获取当日的天气详情
-        const key = this.dateFormat("Y-mm-dd", d);
-        var info =
-          this.$store.state.weatherFuture[key] ||
-          this.$store.state.weatherHistory[key] ||
-          {};
-        info.day =
-          index == 0
-            ? key == keyToday
-              ? "今天"
-              : "当天"
-            : "周" + this.dayNames[d.getDay()]; // 设日期title
-        results = [...results, info];
-      }
-
-      return results;
-    }
-  },
-  computed: {
-    cityTodayInfo() {
-      const key = this.dateFormat("Y-mm-dd", this.date);
-      const t = this.$store.state.weatherFuture[key] ||
-        this.$store.state.weatherHistory[key] || {
-          温度: "？℃",
-          天气: "未知"
-        };
-      return {
-        temperature: t
-          ? t["温度"].split("/")[0].replace("℃", "") + "°"
-          : "未知",
-        cityName: "上海市",
-        weather: t["天气"],
-        weatherImage: this.getWeatherImage(t["天气"])
-      };
     }
   }
 };

@@ -28,12 +28,16 @@ var chineseLunar = require("chinese-lunar");
 export default {
   props: {
     date: {
-      require: true
+      default: () => new Date()
     }
   },
   mounted() {
     window.vue = this;
     window.chineseLunar = chineseLunar;
+    // 获取调休日期
+    this.getWorkData(this.date.getFullYear());
+    // 获取节气日期
+    this.getSolarTerms(this.date.getFullYear());
   },
   components: {
     FullCalendar
@@ -50,17 +54,68 @@ export default {
         momentTimezonePlugin
       ],
       dayNames: ["日", "一", "二", "三", "四", "五", "六"],
+      workDays: {}, // 调休日期字典：{ "2020-02-02" : "休" }
+      solarTerms: {}, // 节气日期字典： { "2013-02-04": "立春" }
       elFocusOn: undefined // 当前点击的元素
     };
   },
   watch: {
-    date(to) {
+    date(to, from) {
       let calendar = this.$refs.fullCalendar.getApi();
       calendar.gotoDate(to);
+
+      // 获取新的数据
+      if (to.getFullYear() !== from.getFullYear()) {
+        this.getWorkData(to.getFullYear());
+        this.getSolarTerms(to.getFullYear());
+      }
+
       // this.clear();
+    },
+    workDays() {
+      // 重新渲染日期单元格
+      this.reDayRender();
+    },
+    solarTerms() {
+      // 重新渲染日期单元格
+      this.reDayRender();
     }
   },
   methods: {
+    // 获取调休数据
+    getWorkData(year) {
+      this.$axios
+        .get("/api/calendar/workDays", { params: { year: year } })
+        .then(res => {
+          this.workDays = res.data;
+        })
+        .catch(error => {
+          this.$notification.error({
+            message: error.response.status,
+            description: error.response.statusText
+          });
+          return Promise.reject(error)
+            .then()
+            .catch();
+        });
+    },
+    // 获取节气数据
+    getSolarTerms(year) {
+      this.$axios
+        .get("/api/calendar/solarTerms", { params: { year: year } })
+        .then(res => {
+          this.solarTerms = res.data;
+        })
+        .catch(error => {
+          this.$notification.error({
+            message: error.response.status,
+            description: error.response.statusText
+          });
+          return Promise.reject(error)
+            .then()
+            .catch();
+        });
+    },
     // 日历切换时做一些清除操作
     clear() {
       this.elFocusOn.style.background = "none";
@@ -147,7 +202,7 @@ export default {
         );
 
         // 显示的节日
-        var solarTerm = this.$store.state.solarTerms[dateFullString]; // 节气
+        var solarTerm = this.solarTerms[dateFullString]; // 节气
         var solarFestival = this.$store.state.solarFestival[dateString]; // 公历节日
         var lunarFestival = this.$store.state.lunarFestival[lunarDateString]; // 农历节日
         var westFestival = this.$store.state.westFestival[weekdayNumString]; // 西方节日
@@ -155,7 +210,7 @@ export default {
           solarFestival || lunarFestival || westFestival || solarTerm; // 公历节日 > 农历节日 > 西方节日 > 节气
 
         // 显示的上班调休状态：班、休、undefined
-        var workEvent = this.$store.state.workDays[dateFullString];
+        var workEvent = this.workDays[dateFullString];
 
         // 找到日期容器和事件容器
         const divContent = this.getParent(dayRenderInfo.el, "div", "bg")
@@ -205,6 +260,17 @@ export default {
         </div>
         `;
       }
+    },
+    // 重新渲染日单元格
+    reDayRender() {
+      // 重新渲染日期单元格
+      let calendar = this.$refs.fullCalendar.getApi();
+      [...calendar.el.getElementsByClassName("fc-day")].map(item => {
+        this.dayRender({
+          date: new Date(item.getAttribute("data-date")),
+          el: item
+        });
+      });
     },
     // 选择月份
     changeMonth(start, end, current) {
