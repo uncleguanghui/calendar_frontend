@@ -43,7 +43,7 @@ const routes = [
       {
         path: "/",
         name: "home",
-        redirect: "/calendar"
+        redirect: "/plan"
       },
       // 日历
       {
@@ -52,12 +52,26 @@ const routes = [
         component: () =>
           import(/* webpackChunkName: "calendar" */ "../views/Calendar")
       },
-      // 清单
+      // 计划
       {
-        path: "/todolist",
-        name: "todolist",
+        path: "/plan",
+        name: "plan",
         component: () =>
-          import(/* webpackChunkName: "todolist" */ "../views/TodoList")
+          import(/* webpackChunkName: "plan" */ "../layouts/PlanLayout"),
+        children: [
+          // 重定向
+          {
+            path: "/plan",
+            redirect: "/plan/today"
+          },
+          // 今日计划
+          {
+            path: "/plan/*",
+            name: "plan today",
+            component: () =>
+              import(/* webpackChunkName: "plan" */ "../views/Plan")
+          }
+        ]
       },
       // 帮助
       {
