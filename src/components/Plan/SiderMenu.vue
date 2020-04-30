@@ -27,12 +27,6 @@ export default {
           icon: "check-circle",
           name: "已完成",
           num: 0
-        },
-        {
-          key: "/plan/overdue",
-          icon: "exclamation-circle",
-          name: "已过期",
-          num: 5
         }
       ],
       selectedKeys: [

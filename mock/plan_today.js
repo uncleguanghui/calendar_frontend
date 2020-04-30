@@ -1,40 +1,45 @@
 // 获取今天的任务
+
+// 日期格式化
+const dateFormat = function(fmt, date) {
+  let ret;
+  const opt = {
+    "Y+": date.getFullYear().toString(), // 年
+    "m+": (date.getMonth() + 1).toString(), // 月
+    "d+": date.getDate().toString(), // 日
+    "H+": date.getHours().toString(), // 时
+    "M+": date.getMinutes().toString(), // 分
+    "S+": date.getSeconds().toString() // 秒
+    // 有其他格式化字符需求可以继续添加，必须转化成字符串
+  };
+  for (let k in opt) {
+    ret = new RegExp("(" + k + ")").exec(fmt);
+    if (ret) {
+      fmt = fmt.replace(
+        ret[1],
+        ret[1].length == 1 ? opt[k] : opt[k].padStart(ret[1].length, "0")
+      );
+    }
+  }
+  return fmt;
+};
+
 const plans = [
-  { title: "event 8.1 event event ", date: "2020-03-20" },
-  { title: "event 8.1 event event ", date: "2020-04-20" },
   {
-    title: "event 8.1 event event ",
-    start: "2020-04-20 16:00:00",
-    end: "2020-04-21 09:30:10"
-  },
-  {
-    title: "event 8.1 event event ",
-    start: "2020-04-20 18:00:00"
-  },
-  {
-    title: "event 9.1 event event ",
-    date: "2020-04-20",
-    extendedProps: {
-      status: "done"
-    },
-    backgroundColor: "#00bcbc"
-  },
-  { title: "event 1.1 event event ", date: "2020-04-21" },
-  { title: "event 1.2 event event ", date: "2020-04-21" },
-  { title: "event 1.3 event event ", date: "2020-04-21" },
-  { title: "event 1.4 event event ", date: "2020-04-21" },
-  { title: "event 1.5 event event ", date: "2020-04-21" },
-  { title: "event 2.1 event event ", date: "2020-04-22" },
-  {
-    title: "event 2.2 event event ",
-    start: "2020-04-22",
-    end: "2020-04-22"
-  },
-  {
-    title: "event 2.3 event event ",
-    start: "2020-04-22",
-    end: "2020-04-29",
-    color: "#06BB87"
+    id: "sdfasfasdf",
+    groupId: "aabbccdd",
+    title: "买菜",
+    alarmStrategy: "买菜",
+    start: dateFormat("Y-mm-dd H:M:S", new Date(new Date().setHours(12))),
+    end: dateFormat("Y-mm-dd H:M:S", new Date(new Date().setHours(13))),
+    status: 1,
+    allDay: true,
+    position: "",
+    typeId: "life",
+    level: "high",
+    tags: [],
+    backgroundColor: "#00bcbc",
+    description: "今天天气真好"
   }
 ];
 
