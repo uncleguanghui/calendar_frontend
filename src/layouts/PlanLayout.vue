@@ -1,11 +1,10 @@
 <template>
   <a-layout>
     <a-layout-sider
-      width="200px"
+      width="200"
       :style="{
         background: '#fff',
-        height: '100vh',
-        position: 'fixed',
+        height: 'calc(100vh - 64px)',
         left: 0
       }"
       breakpoint="lg"
@@ -18,7 +17,12 @@
         }"
       />
     </a-layout-sider>
-    <a-layout-content>
+    <a-layout-content
+      :style="{
+        background: '#fff',
+        position: 'relative'
+      }"
+    >
       <router-view></router-view>
     </a-layout-content>
   </a-layout>

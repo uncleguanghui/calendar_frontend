@@ -21,7 +21,7 @@
       >
         <div class="sub-title">{{ result["名称"] }}</div>
         <div class="sub-icon">
-          <a-avatar :src="getWeatherIcon(result['天气'])" />
+          <a-avatar shape="square" :src="getWeatherIcon(result['天气'])" />
         </div>
         <div class="sub-weather">{{ result["天气"] }}</div>
       </a-card-grid>
