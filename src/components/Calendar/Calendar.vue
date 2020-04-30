@@ -23,6 +23,7 @@ import interactionPlugin from "@fullcalendar/interaction";
 import zhLocale from "@fullcalendar/core/locales/zh-cn";
 import momentPlugin from "@fullcalendar/moment";
 import momentTimezonePlugin from "@fullcalendar/moment-timezone";
+
 var chineseLunar = require("chinese-lunar");
 
 export default {
@@ -84,37 +85,27 @@ export default {
   methods: {
     // 获取调休数据
     getWorkData(year) {
-      this.$axios
-        .get("/api/calendar/workDays", { params: { year: year } })
-        .then(res => {
-          this.workDays = res.data;
-        })
-        .catch(error => {
-          this.$notification.error({
-            message: error.response.status,
-            description: error.response.statusText
-          });
-          return Promise.reject(error)
-            .then()
-            .catch();
-        });
+      this.$request({
+        url: "/api/calendar/workDays",
+        method: "get",
+        params: {
+          year: year
+        }
+      }).then(res => {
+        this.workDays = res.data;
+      });
     },
     // 获取节气数据
     getSolarTerms(year) {
-      this.$axios
-        .get("/api/calendar/solarTerms", { params: { year: year } })
-        .then(res => {
-          this.solarTerms = res.data;
-        })
-        .catch(error => {
-          this.$notification.error({
-            message: error.response.status,
-            description: error.response.statusText
-          });
-          return Promise.reject(error)
-            .then()
-            .catch();
-        });
+      this.$request({
+        url: "/api/calendar/solarTerms",
+        method: "get",
+        params: {
+          year: year
+        }
+      }).then(res => {
+        this.solarTerms = res.data;
+      });
     },
     // 日历切换时做一些清除操作
     clear() {

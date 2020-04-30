@@ -22,12 +22,15 @@ import {
   Message,
   Tooltip,
   Card,
-  Avatar
+  Avatar,
+  Collapse,
+  Checkbox
 } from "ant-design-vue";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import axios from "axios";
 import moment from "moment";
 import "moment/locale/zh-cn";
+import request from "./utils/request";
 
 moment.locale("zh-cn");
 
@@ -51,6 +54,8 @@ Vue.use(LocaleProvider);
 Vue.use(Tooltip);
 Vue.use(Card);
 Vue.use(Avatar);
+Vue.use(Collapse);
+Vue.use(Checkbox);
 
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
@@ -59,6 +64,7 @@ Vue.prototype.$message = Message;
 Vue.prototype.$notification = Notification;
 Vue.prototype.$moment = moment;
 Vue.prototype.$axios = axios;
+Vue.prototype.$request = request;
 
 new Vue({
   router,

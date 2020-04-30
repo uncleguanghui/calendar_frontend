@@ -61,35 +61,30 @@ export default {
       const todayString = this.dateFormat("Y-mm-dd", new Date());
       const dateString = this.dateFormat("Y-mm-dd", this.date);
 
-      this.$axios
-        .get("/api/weather/5days", { params: { date: dateString } })
-        .then(res => {
-          this.weatherList = res.data.map(item => {
-            if (item) {
-              const ws = item["天气"].split("/");
-              item["天气"] = ws[0] === ws[1] ? ws[0] : item["天气"];
-              item["名称"] =
-                item["日期"] === dateString
-                  ? dateString == todayString
-                    ? "今天"
-                    : "当天"
-                  : "周" + this.dayNames[new Date(item["日期"]).getDay()];
-              item["温度"] = item["温度"].split("/")[0].replace("℃", "") + "°";
-              return item;
-            } else {
-              return {};
-            }
-          });
-        })
-        .catch(error => {
-          this.$notification.error({
-            message: error.response.status,
-            description: error.response.statusText
-          });
-          return Promise.reject(error)
-            .then()
-            .catch();
+      this.$request({
+        url: "/api/weather/5days",
+        method: "get",
+        params: {
+          date: dateString
+        }
+      }).then(res => {
+        this.weatherList = res.data.map(item => {
+          if (item) {
+            const ws = item["天气"].split("/");
+            item["天气"] = ws[0] === ws[1] ? ws[0] : item["天气"];
+            item["名称"] =
+              item["日期"] === dateString
+                ? dateString == todayString
+                  ? "今天"
+                  : "当天"
+                : "周" + this.dayNames[new Date(item["日期"]).getDay()];
+            item["温度"] = item["温度"].split("/")[0].replace("℃", "") + "°";
+            return item;
+          } else {
+            return {};
+          }
         });
+      });
     },
     dateFormat(fmt, date) {
       let ret;
