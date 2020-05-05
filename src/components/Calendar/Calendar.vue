@@ -258,7 +258,7 @@ export default {
       let calendar = this.$refs.fullCalendar.getApi();
       [...calendar.el.getElementsByClassName("fc-day")].map(item => {
         this.dayRender({
-          date: new Date(item.getAttribute("data-date")),
+          date: new Date(item.getAttribute("data-date") + " 00:00:00"),
           el: item
         });
       });
