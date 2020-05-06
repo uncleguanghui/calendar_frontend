@@ -9,7 +9,6 @@
       }"
       breakpoint="lg"
       collapsedWidth="0"
-      @collapse="onCollapse"
     >
       <sider-Menu
         :style="{
@@ -35,12 +34,7 @@ export default {
   data() {
     return {};
   },
-  components: { SiderMenu },
-  methods: {
-    onCollapse(collapsed, type) {
-      console.log(collapsed, type);
-    }
-  }
+  components: { SiderMenu }
 };
 </script>
 

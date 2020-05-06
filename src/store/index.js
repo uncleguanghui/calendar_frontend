@@ -5,6 +5,39 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
   state: {
+    fullPlanData: [], //所有计划
+    groupPlanData: {
+      "/plan/today": {
+        finished: [], //已完成
+        expired: [], //已过期
+        going: [], //进行中
+        highLevel: [], //高
+        mediumLevel: [], //中
+        lowLevel: [], //低
+        noneLevel: [] //无
+      },
+      "/plan/recent": {
+        finished: [], //已完成
+        expired: [], //已过期
+        going: [], //进行中
+        highLevel: [], //高
+        mediumLevel: [], //中
+        lowLevel: [], //低
+        noneLevel: [] //无
+      },
+      "/plan/all": {
+        finished: [], //已完成
+        expired: [], //已过期
+        going: [], //进行中
+        highLevel: [], //高
+        mediumLevel: [], //中
+        lowLevel: [], //低
+        noneLevel: [] //无
+      },
+      "/plan/finished": {
+        finished: [] //已完成
+      }
+    }, //所有计划（分组后）
     // 图标列表里，图标的位置是有讲究的，按从弱到强以及关联性排序（为了在弱匹配时能返回一个较正确的图标）
     weatherDict: {
       雨: [

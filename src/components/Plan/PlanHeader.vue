@@ -2,8 +2,17 @@
   <div>
     <!-- 标题 -->
     <span :style="{ fontSize: '32px' }">{{ title }}</span>
-    <!-- 右上角下拉框 -->
+    <!-- 右上角功能区 -->
     <div :style="{ float: 'right', marginTop: '12px' }">
+      <a-tooltip title="同步" trigger="hover" placement="bottom">
+        <a-avatar
+          shape="square"
+          :src="publicPath + 'icons/' + '同步.png'"
+          :size="18"
+          :style="{ marginRight: '15px' }"
+          @click="reloadFunc"
+        />
+      </a-tooltip>
       <!-- 排序下拉框 -->
       <a-dropdown :trigger="['click']">
         <a-avatar
@@ -41,13 +50,13 @@
           <a-menu-item key="detail">
             <a-avatar
               shape="square"
-              :src="moreMenus['detail'][selectedDetailKey].icon"
-              :size="moreMenus['detail'][selectedDetailKey].size"
+              :src="moreMenus['detail'][reverseSelectedDetailKey].icon"
+              :size="moreMenus['detail'][reverseSelectedDetailKey].size"
               :style="{
                 marginRight: '10px'
               }"
             />
-            {{ moreMenus["detail"][selectedDetailKey].text }}
+            {{ moreMenus["detail"][reverseSelectedDetailKey].text }}
           </a-menu-item>
         </a-menu>
       </a-dropdown>
@@ -68,11 +77,20 @@ export default {
     },
     title: {
       require: true
+    },
+    reloadFunc: {
+      require: true
+    }
+  },
+  computed: {
+    reverseSelectedDetailKey() {
+      return this.selectedDetailKey === "show" ? "hide" : "show";
     }
   },
   data() {
     const publicPath = process.env.BASE_URL;
     return {
+      rotate: false,
       publicPath: publicPath, // public 文件夹的位置
       sortMenus: {
         time: {
@@ -120,30 +138,4 @@ export default {
 };
 </script>
 
-<style scoped>
-.box-content {
-  display: inline-block;
-  vertical-align: text-top;
-}
-
-.box-title {
-  font-size: 14px;
-  font-weight: bold;
-}
-
-.box-description {
-  font-size: 8px;
-  margin-left: 23px;
-  line-height: 2;
-  border-bottom: 1px solid #ececec;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  -webkit-line-clamp: 1;
-  -webkit-box-orient: vertical;
-  word-break: break-all;
-  width: 100%;
-  display: block;
-  max-width: calc(50vw - 160px);
-}
-</style>
+<style scoped></style>

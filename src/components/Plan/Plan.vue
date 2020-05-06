@@ -5,10 +5,10 @@
       :selectedSortKey.sync="selectedSortKey"
       :selectedDetailKey.sync="selectedDetailKey"
       :title="title"
+      :reloadFunc="getAllPlanData"
     />
     <!-- 计划列表 -->
     <plan-collapse
-      :data="groupPlanData"
       :selectedSortKey="selectedSortKey"
       :selectedDetailKey="selectedDetailKey"
     />
@@ -22,6 +22,9 @@ import PlanHeader from "./PlanHeader";
 export default {
   components: { PlanCollapse, PlanHeader },
   mounted() {
+    if (!this.titles[this.$router.currentRoute.path]) {
+      this.$router.push("/plan/today");
+    }
     this.getAllPlanData();
   },
   data() {
@@ -38,16 +41,13 @@ export default {
       title: titles[this.$router.currentRoute.path],
       publicPath: publicPath, // public 文件夹的位置
       selectedSortKey: "time", //排序对象
-      selectedDetailKey: "show", // 详情选择情况
-      fullPlanData: [], // 所有计划
-      groupPlanData: [] // 所有计划（分组后）
+      selectedDetailKey: "show" // 详情选择情况
     };
   },
   watch: {
     $route: function(to) {
       this.title = this.titles[to.path];
       this.updateData();
-      console.log(this.groupPlanData.map(item => item.data.length));
     }
   },
   methods: {
@@ -56,7 +56,10 @@ export default {
         url: "/api/plan/all",
         method: "get"
       }).then(res => {
-        this.fullPlanData = res.data;
+        this.$store.state.fullPlanData = res.data.map(obj => {
+          obj.endString = this.dateFormat("m月d日", new Date(obj.end));
+          return obj;
+        });
         this.updateData();
       });
     },
@@ -103,7 +106,6 @@ export default {
       // 已完成-最近7天：状态为1，且满足以下任意一个条件：1）结束时间在今天0点~6天后的24点（含）之间；2）完成时间在今天0点~6天后的24点（含）之间
       // 已完成-全部：状态为1
 
-      const path = this.$router.currentRoute.path; //当前路径
       const current = new Date(); //当前时间
       const today0 = new Date(new Date().toDateString()); //今天0点
       const today24 = new Date(new Date().toDateString()); //今天24点
@@ -111,25 +113,72 @@ export default {
       const future7 = new Date(new Date().toDateString()); //6天后的24点
       future7.setDate(future7.getDate() + 7);
 
-      // 1、先对计划按照完成状态进行分组
-      var finished = []; //已完成
-      var expired = []; //已过期
-      var going = []; //进行中
+      var result = {
+        "/plan/today": {
+          finished: [], //已完成
+          expired: [], //已过期
+          going: [], //进行中
+          highLevel: [], //高
+          mediumLevel: [], //中
+          lowLevel: [], //低
+          noneLevel: [] //无
+        },
+        "/plan/recent": {
+          finished: [], //已完成
+          expired: [], //已过期
+          going: [], //进行中
+          highLevel: [], //高
+          mediumLevel: [], //中
+          lowLevel: [], //低
+          noneLevel: [] //无
+        },
+        "/plan/all": {
+          finished: [], //已完成
+          expired: [], //已过期
+          going: [], //进行中
+          highLevel: [], //高
+          mediumLevel: [], //中
+          lowLevel: [], //低
+          noneLevel: [] //无
+        },
+        "/plan/finished": {
+          finished: [] //已完成
+        }
+      }; //最终结果
 
-      for (let plan of this.fullPlanData) {
+      // 1、先对计划按照完成状态进行分组
+      for (let plan of this.$store.state.fullPlanData) {
         // 任务的各种时间
         const start = new Date(plan.start); //开始时间
         const end = new Date(plan.end); //结束时间
         const finish = plan.finish ? new Date(plan.finish) : undefined; //完成时间
 
-        // 过期状态
+        // 1）过期状态
         const isExpired = plan.status === 0 && end <= current;
         if (isExpired) {
-          expired.push(plan);
-          continue;
+          result["/plan/today"].expired.push(plan);
+          result["/plan/recent"].expired.push(plan);
+          result["/plan/all"].expired.push(plan);
+          if (plan.level === "high") {
+            result["/plan/today"].highLevel.push(plan);
+            result["/plan/recent"].highLevel.push(plan);
+            result["/plan/all"].highLevel.push(plan);
+          } else if (plan.level === "medium") {
+            result["/plan/today"].mediumLevel.push(plan);
+            result["/plan/recent"].mediumLevel.push(plan);
+            result["/plan/all"].mediumLevel.push(plan);
+          } else if (plan.level === "low") {
+            result["/plan/today"].lowLevel.push(plan);
+            result["/plan/recent"].lowLevel.push(plan);
+            result["/plan/all"].lowLevel.push(plan);
+          } else if (plan.level === "none") {
+            result["/plan/today"].noneLevel.push(plan);
+            result["/plan/recent"].noneLevel.push(plan);
+            result["/plan/all"].noneLevel.push(plan);
+          }
         }
 
-        // 完成状态
+        // 2）完成状态
         const isFinished = plan.status === 1;
         if (isFinished) {
           const isFinishedToday =
@@ -140,33 +189,59 @@ export default {
             isFinished &&
             ((end > today0 && end <= future7) ||
               (finish && finish > today0 && finish <= future7));
-          if (path === "/plan/today" && isFinishedToday) {
-            finished.push(plan);
-          } else if (path === "/plan/recent" && isFinishedRecent) {
-            finished.push(plan);
-          } else if (path === "/plan/all") {
-            finished.push(plan);
-          } else if (path === "/plan/finished") {
-            finished.push(plan);
+
+          if (isFinishedToday) {
+            result["/plan/today"].finished.push(plan);
           }
-          continue;
+          if (isFinishedRecent) {
+            result["/plan/recent"].finished.push(plan);
+          }
+          result["/plan/all"].finished.push(plan);
+          result["/plan/finished"].finished.push(plan);
         }
 
-        // 进行状态
+        // 3）进行状态
         const isGoing = plan.status === 0 && end > current;
         if (isGoing) {
           const isGoingToday =
             isGoing && (end <= today24 || (end > today24 && start <= today0));
           const isGoingRecent =
             isGoing && (end <= future7 || (end > future7 && start <= today0));
-          if (path === "/plan/today" && isGoingToday) {
-            going.push(plan);
-          } else if (path === "/plan/recent" && isGoingRecent) {
-            going.push(plan);
-          } else if (path === "/plan/all") {
-            going.push(plan);
+
+          if (isGoingToday) {
+            result["/plan/today"].going.push(plan);
+            if (plan.level === "high") {
+              result["/plan/today"].highLevel.push(plan);
+            } else if (plan.level === "medium") {
+              result["/plan/today"].mediumLevel.push(plan);
+            } else if (plan.level === "low") {
+              result["/plan/today"].lowLevel.push(plan);
+            } else if (plan.level === "none") {
+              result["/plan/today"].noneLevel.push(plan);
+            }
           }
-          continue;
+          if (isGoingRecent) {
+            result["/plan/recent"].going.push(plan);
+            if (plan.level === "high") {
+              result["/plan/recent"].highLevel.push(plan);
+            } else if (plan.level === "medium") {
+              result["/plan/recent"].mediumLevel.push(plan);
+            } else if (plan.level === "low") {
+              result["/plan/recent"].lowLevel.push(plan);
+            } else if (plan.level === "none") {
+              result["/plan/recent"].noneLevel.push(plan);
+            }
+          }
+          result["/plan/all"].going.push(plan);
+          if (plan.level === "high") {
+            result["/plan/all"].highLevel.push(plan);
+          } else if (plan.level === "medium") {
+            result["/plan/all"].mediumLevel.push(plan);
+          } else if (plan.level === "low") {
+            result["/plan/all"].lowLevel.push(plan);
+          } else if (plan.level === "none") {
+            result["/plan/all"].noneLevel.push(plan);
+          }
         }
       }
 
@@ -180,55 +255,30 @@ export default {
         }
       };
       const sortEndTime = (a, b) => sortTime(a, b, false, "end");
-      expired.sort(sortEndTime);
-      going.sort(sortEndTime);
-      finished.sort(sortEndTime);
+      result["/plan/today"].expired.sort(sortEndTime);
+      result["/plan/today"].going.sort(sortEndTime);
+      result["/plan/today"].finished.sort(sortEndTime);
+      result["/plan/today"].highLevel.sort(sortEndTime);
+      result["/plan/today"].mediumLevel.sort(sortEndTime);
+      result["/plan/today"].lowLevel.sort(sortEndTime);
+      result["/plan/today"].noneLevel.sort(sortEndTime);
+      result["/plan/recent"].expired.sort(sortEndTime);
+      result["/plan/recent"].going.sort(sortEndTime);
+      result["/plan/recent"].finished.sort(sortEndTime);
+      result["/plan/recent"].highLevel.sort(sortEndTime);
+      result["/plan/recent"].mediumLevel.sort(sortEndTime);
+      result["/plan/recent"].lowLevel.sort(sortEndTime);
+      result["/plan/recent"].noneLevel.sort(sortEndTime);
+      result["/plan/all"].expired.sort(sortEndTime);
+      result["/plan/all"].going.sort(sortEndTime);
+      result["/plan/all"].finished.sort(sortEndTime);
+      result["/plan/all"].highLevel.sort(sortEndTime);
+      result["/plan/all"].mediumLevel.sort(sortEndTime);
+      result["/plan/all"].lowLevel.sort(sortEndTime);
+      result["/plan/all"].noneLevel.sort(sortEndTime);
+      result["/plan/finished"].finished.sort(sortEndTime);
 
-      // 3、再看是否要根据优先级货日期进行分组，输出最终的数据
-      var highLevel = []; //高
-      var mediumLevel = []; //中
-      var lowLevel = []; //低
-      var noneLevel = []; //无
-      var result = [];
-      if (this.selectedSortKey === "level") {
-        // 拆分已过期和进行中的任务
-        for (let plan of [...expired, ...going]) {
-          if (plan.level === "high") {
-            highLevel.push(plan);
-          } else if (plan.level === "medium") {
-            mediumLevel.push(plan);
-          } else if (plan.level === "low") {
-            lowLevel.push(plan);
-          } else if (plan.level === "none") {
-            noneLevel.push(plan);
-          }
-        }
-
-        result = [
-          { title: "高优先级", data: highLevel },
-          { title: "中优先级", data: mediumLevel },
-          { title: "低优先级", data: lowLevel },
-          { title: "无优先级", data: noneLevel },
-          { title: "已完成", data: finished }
-        ];
-      } else if (this.selectedSortKey === "time") {
-        // 按时间排序
-        // 对结果按日期进行分组的函数
-        if (
-          path === "/plan/today" ||
-          path === "/plan/recent" ||
-          path === "/plan/all"
-        ) {
-          result = [
-            { title: "已过期", data: expired },
-            ...this.groupDate(going),
-            { title: "已完成", data: finished }
-          ];
-        } else if (path === "/plan/finished") {
-          result = this.groupDate(finished);
-        }
-      }
-      this.groupPlanData = result;
+      this.$store.state.groupPlanData = result;
     },
     // 对计划列表 data ，按照列表内元素的日期进行分组
     groupDate(data) {

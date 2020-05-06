@@ -60,7 +60,8 @@ const plans = [
     level: "high",
     tags: [],
     backgroundColor: "#00bcbc",
-    description: "今天天气真好"
+    description:
+      "今天天气真好，打卡喝咖啡哈的看法哈克龙但符合快了吧GV剩女了童话如何IG考哈打瞌睡发快递和覅违规被噶刚收到话费卡会受到发"
   },
   // 今天
   {
