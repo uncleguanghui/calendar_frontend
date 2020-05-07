@@ -39,13 +39,13 @@ const plans = [
     start: dateFormat("Y-mm-dd H:M:S", new Date(yestoday.setHours(12))),
     end: dateFormat("Y-mm-dd H:M:S", new Date(yestoday.setHours(13))),
     status: 1,
-    allDay: true,
+    allDay: false,
     position: "",
     typeId: "life",
     level: "high",
-    tags: [],
+    tags: ["买菜"],
     backgroundColor: "#00bcbc",
-    description: "今天天气真好"
+    description: ""
   },
   {
     id: "bcvbdfghd",
@@ -56,11 +56,11 @@ const plans = [
     start: dateFormat("Y-mm-dd H:M:S", new Date(yestoday.setHours(12))),
     end: dateFormat("Y-mm-dd H:M:S", new Date(yestoday.setHours(13))),
     status: 0,
-    allDay: true,
+    allDay: false,
     position: "",
     typeId: "life",
     level: "high",
-    tags: [],
+    tags: ["买菜"],
     backgroundColor: "#00bcbc",
     description:
       "今天天气真好，打卡喝咖啡哈的看法哈克龙但符合快了吧GV剩女了童话如何IG考哈打瞌睡发快递和覅违规被噶刚收到话费卡会受到发"
@@ -75,11 +75,11 @@ const plans = [
     start: dateFormat("Y-mm-dd H:M:S", new Date(new Date().setHours(12))),
     end: dateFormat("Y-mm-dd H:M:S", new Date(new Date().setHours(13))),
     status: 1,
-    allDay: true,
+    allDay: false,
     position: "",
     typeId: "life",
     level: "high",
-    tags: [],
+    tags: ["买菜"],
     backgroundColor: "#00bcbc",
     description: "今天天气真好"
   },
@@ -96,7 +96,7 @@ const plans = [
     position: "",
     typeId: "life",
     level: "high",
-    tags: [],
+    tags: ["买菜"],
     backgroundColor: "#00bcbc",
     description: "今天天气真好"
   },
@@ -114,7 +114,7 @@ const plans = [
     position: "",
     typeId: "life",
     level: "high",
-    tags: [],
+    tags: ["买菜"],
     backgroundColor: "#00bcbc",
     description: "今天天气真好"
   },
@@ -131,7 +131,7 @@ const plans = [
     position: "",
     typeId: "life",
     level: "high",
-    tags: [],
+    tags: ["买菜"],
     backgroundColor: "#00bcbc",
     description: "今天天气真好"
   }

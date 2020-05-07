@@ -24,7 +24,10 @@ import {
   Card,
   Avatar,
   Collapse,
-  Checkbox
+  Checkbox,
+  Tag,
+  Tabs,
+  TimePicker
 } from "ant-design-vue";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import axios from "axios";
@@ -56,6 +59,9 @@ Vue.use(Card);
 Vue.use(Avatar);
 Vue.use(Collapse);
 Vue.use(Checkbox);
+Vue.use(Tag);
+Vue.use(Tabs);
+Vue.use(TimePicker);
 
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
