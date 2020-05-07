@@ -27,16 +27,20 @@ module.exports = {
             console.log("Skipping proxy for browser request.");
             return "/index.html";
           } else if (process.env.MOCK !== "none") {
-            // 按照命名规范，找到 mock 目录下的文件名
             const name = (req.path.split("/api/")[1] || "")
               .split("/")
               .join("_");
-            // 获取到 js 里的函数，并获取到特定方法下的返回值
-            const mock = require(`./mock/${name}`);
-            const result = mock(req);
-            // 手动删除缓存，使得每次 mock 数据更新可以及时生效
-            delete require.cache[require.resolve(`./mock/${name}`)];
-            return res.send(result);
+            try {
+              // 按照命名规范，找到 mock 目录下的文件名
+              // 获取到 js 里的函数，并获取到特定方法下的返回值
+              const mock = require(`./mock/${name}`);
+              const result = mock(req);
+              // 手动删除缓存，使得每次 mock 数据更新可以及时生效
+              delete require.cache[require.resolve(`./mock/${name}`)];
+              return res.send(result);
+            } catch (e) {
+              console.log(`文件 ./mock/${name} 不存在，请手动创建一个`);
+            }
           }
         }
       }
