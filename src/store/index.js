@@ -5,6 +5,7 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
   state: {
+    planId: undefined, //当前计划
     fullPlanData: [], //所有计划
     groupPlanData: {
       "/plan/today": {

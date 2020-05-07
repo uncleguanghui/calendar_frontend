@@ -1,5 +1,5 @@
 <template>
-  <div class="page">
+  <div class="page" v-if="data.length > 0">
     <a-collapse
       v-model="activeKey"
       :bordered="false"
@@ -10,28 +10,27 @@
           <span>{{ item.title }}</span>
           <span :style="{ float: 'right' }">{{ item.options.length }}</span>
         </div>
-        <div
-          :style="{ maxHeight: '50px' }"
-          :key="plan.id"
-          v-for="plan in item.options"
-        >
-          <a-checkbox>
-            <div class="checkbox-content">
-              <span class="checkbox-label">{{ plan.title }}</span>
-              <div class="checkbox-right">
-                {{ plan.endString }}
-              </div>
-              <div
-                v-if="selectedDetailKey === 'show'"
-                class="checkbox-description"
-              >
-                {{ plan.description }}
-              </div>
+        <div class="checkbox" :key="plan.id" v-for="plan in item.options">
+          <a-checkbox @change="() => onChange(plan.id)" />
+          <div class="checkbox-content" @click="() => clickHandle(plan.id)">
+            <span class="checkbox-label">{{ plan.title }}</span>
+            <div class="checkbox-right">
+              {{ plan.endString }}
             </div>
-          </a-checkbox>
+            <div
+              v-if="selectedDetailKey === 'show'"
+              class="checkbox-description"
+            >
+              {{ plan.description }}
+            </div>
+          </div>
         </div>
       </a-collapse-panel>
     </a-collapse>
+  </div>
+  <div v-else class="plan-empty">
+    <img :src="emptyImage" alt="" class="plan-empty-image" />
+    <div class="plan-empty-title">没有任务哦，稍微放松下吧</div>
   </div>
 </template>
 
@@ -48,6 +47,7 @@ export default {
     }
   },
   data() {
+    const publicPath = process.env.BASE_URL;
     const headers = {
       level: [
         { key: "highLevel", title: "高优先级" },
@@ -66,7 +66,8 @@ export default {
       headers: headers,
       activeKey: headers[this.selectedSortKey]
         .map(obj => obj.key)
-        .filter(key => key !== "finished")
+        .filter(key => key !== "finished"),
+      emptyImage: publicPath + "images/" + "Relax.svg"
     };
   },
   computed: {
@@ -81,13 +82,44 @@ export default {
         .filter(obj => obj.options && obj.options.length > 0);
       return result;
     }
+  },
+  methods: {
+    onChange(planId) {
+      // todo: 添加完成事件
+      console.log(`${planId}已完成`);
+    },
+    clickHandle(planId) {
+      this.$store.state.planId = planId;
+    }
   }
 };
 </script>
 
 <style scoped>
+.plan-empty {
+  position: absolute;
+  transform: translate(0, -80%);
+  top: 50%;
+  text-align: center;
+}
+
+.plan-empty-image {
+  width: 80%;
+}
+
+.plan-empty-title {
+  color: #767879;
+  padding-top: 20px;
+}
+
+.checkbox {
+  max-height: 50px;
+  margin: 10px 0;
+}
+
 .checkbox-content {
-  display: contents;
+  display: inline;
+  padding-left: 10px;
 }
 
 .checkbox-label {
@@ -102,7 +134,7 @@ export default {
 
 .checkbox-description {
   font-size: 8px;
-  margin-left: 23px;
+  margin-left: 25px;
   line-height: 2;
   border-bottom: 1px solid #ececec;
   overflow: hidden;
@@ -113,6 +145,14 @@ export default {
   word-break: break-all;
   width: 100%;
   display: block;
-  max-width: calc(50vw - 160px);
+  max-width: calc(100% - 20px);
+}
+
+/* 隐藏下边栏 */
+.ant-collapse-borderless > .ant-collapse-item {
+  border-bottom: none;
+}
+.ant-collapse > .ant-collapse-item {
+  border-bottom: none;
 }
 </style>
