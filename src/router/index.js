@@ -85,6 +85,14 @@ const routes = [
         name: "about",
         component: () =>
           import(/* webpackChunkName: "about" */ "../views/About")
+      },
+      // 插画（临时页）
+      {
+        path: "/illustration",
+        name: "illustration",
+        meta: { keepAlive: true }, // 设置为true表示需要缓存，不设置或者false表示不需要缓存
+        component: () =>
+          import(/* webpackChunkName: "illustration" */ "../views/Illustration")
       }
     ]
   },

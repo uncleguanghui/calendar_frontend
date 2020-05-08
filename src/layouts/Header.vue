@@ -33,7 +33,8 @@ export default {
         { key: "/calendar", name: "日历" },
         { key: "/plan", name: "计划" },
         { key: "/help", name: "帮助" },
-        { key: "/about", name: "关于" }
+        { key: "/about", name: "关于" },
+        { key: "/illustration", name: "插画" }
       ],
       selectedKeys: ["/" + this.$router.currentRoute.path.split("/")[1]]
     };
