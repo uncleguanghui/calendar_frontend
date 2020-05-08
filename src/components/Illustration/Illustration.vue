@@ -15,6 +15,7 @@
         :style="{ width: gridWidth, textAlign: 'center' }"
         v-for="image in renderFiles"
         :key="image"
+        @dblclick="() => copyImage(image)"
       >
         <img :src="image" alt="" class="card-image" />
         <div :style="{ paddingTop: '20px' }">
@@ -121,9 +122,31 @@ export default {
         this.renderFiles = this.showFiles;
       }
     },
+    // 搜索时监听输入
     onChange(e) {
       const { value } = e.target;
       this.onSearch(value);
+    },
+    // 双击拷贝图像内容
+    copyImage(imagePath) {
+      this.$axios.get(imagePath).then(response => {
+        this.$copyText(response.data)
+          .then(() => {
+            const len = response.data.length;
+            this.$notification.success({
+              message: `已将svg内容复制到剪贴板`,
+              description:
+                response.data.slice(0, 30) +
+                " ... " +
+                response.data.slice(len - 10, len)
+            });
+          })
+          .catch(() => {
+            this.$notification.error({
+              message: `拷贝失败`
+            });
+          });
+      });
     }
   },
   computed: {

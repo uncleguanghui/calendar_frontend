@@ -34,8 +34,10 @@ import axios from "axios";
 import moment from "moment";
 import "moment/locale/zh-cn";
 import request from "./utils/request";
+import VueClipboard from "vue-clipboard2";
 
 moment.locale("zh-cn");
+VueClipboard.config.autoSetContainer = true;
 
 Vue.config.productionTip = false;
 
@@ -65,6 +67,7 @@ Vue.use(TimePicker);
 
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
+Vue.use(VueClipboard);
 
 Vue.prototype.$message = Message;
 Vue.prototype.$notification = Notification;
