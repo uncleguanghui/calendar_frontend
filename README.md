@@ -6,7 +6,7 @@
 
 # 项目安排
 
-请到这里：[Plan.md](https://github.com/uncleguanghui/calendar_frontend/tree/master/docs/plan.md)
+请到这里：[Plan.md](https://github.com/uncleguanghui/calendar_frontend/blob/master/docs/Plan.md)
 
 # 最新页面截图
 
