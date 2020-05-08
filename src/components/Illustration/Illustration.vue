@@ -12,13 +12,16 @@
       />
       <!-- 图片展示 -->
       <a-card-grid
-        :style="{ width: gridWidth, textAlign: 'center' }"
+        :style="{ width: gridWidth, textAlign: 'center', overflow: 'hidden' }"
         v-for="image in renderFiles"
         :key="image"
-        @dblclick="() => copyImage(image)"
       >
-        <img :src="image" alt="" class="card-image" />
-        <div :style="{ paddingTop: '20px' }">
+        <img
+          :src="image"
+          :style="{ maxHeight: '100px' }"
+          @dblclick="() => copyImage(image)"
+        />
+        <div :style="{ paddingTop: '20px' }" class="one-line-span ">
           {{
             image
               .split("/")
@@ -174,7 +177,13 @@ export default {
 </script>
 
 <style scoped>
-.card-image {
-  max-height: 100px;
+.one-line-span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  word-break: break-all;
+  width: 100%;
 }
 </style>
