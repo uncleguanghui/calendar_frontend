@@ -3677,17 +3677,15 @@ const chineseAlmanac = {
   }
 };
 
-function func(req) {
-  const method = req.method;
+export default function(req) {
   let res = null;
-  switch (method) {
+  switch (req.type) {
     case "GET":
       res = chineseAlmanac;
       break;
     default:
-      res = {};
+      break;
   }
+  console.log(req.type, req.url, res);
   return res;
 }
-
-module.exports = func;

@@ -1,4 +1,7 @@
 // 获取接下来5天的天气
+import nextDates from "@/mock/func/nextDates";
+import parseParams from "@/mock/func/parseParams";
+
 const weather = {
   "2020-04-01": {
     城市: "上海",
@@ -289,58 +292,27 @@ const weather = {
   }
 };
 
-// 日期格式化
-const dateFormat = function(fmt, date) {
-  let ret;
-  const opt = {
-    "Y+": date.getFullYear().toString(), // 年
-    "m+": (date.getMonth() + 1).toString(), // 月
-    "d+": date.getDate().toString(), // 日
-    "H+": date.getHours().toString(), // 时
-    "M+": date.getMinutes().toString(), // 分
-    "S+": date.getSeconds().toString() // 秒
-    // 有其他格式化字符需求可以继续添加，必须转化成字符串
-  };
-  for (let k in opt) {
-    ret = new RegExp("(" + k + ")").exec(fmt);
-    if (ret) {
-      fmt = fmt.replace(
-        ret[1],
-        ret[1].length == 1 ? opt[k] : opt[k].padStart(ret[1].length, "0")
-      );
-    }
-  }
-  return fmt;
-};
-
-// 从某天开始获取之后的N天
-const nextDates = function(date, days) {
-  var dates = [];
-  for (let day = 0; day < days; day++) {
-    var dt = new Date(date);
-    dt.setDate(dt.getDate() + day);
-    dates = [...dates, dateFormat("Y-mm-dd", dt)];
-  }
-  return dates;
-};
-
-function func(req) {
-  const method = req.method;
+export default function(req) {
   let res = null;
-  switch (method) {
+  let weather_ = JSON.parse(JSON.stringify(weather));
+  let params = parseParams(req.url);
+  switch (req.type) {
     case "GET":
-      res = nextDates(req.query.date, 5).map(item => {
-        var w = weather[item];
-        if (w) {
-          w["日期"] = item;
-        }
+      res = nextDates(params.date, 5).map(item => {
+        var w = weather_[item] || {
+          城市: "",
+          url: "",
+          天气: "",
+          温度: "",
+          风向风力: ""
+        };
+        w["日期"] = item;
         return w;
       });
       break;
     default:
-      res = null;
+      break;
   }
+  console.log(req.type, req.url, res);
   return res;
 }
-
-module.exports = func;

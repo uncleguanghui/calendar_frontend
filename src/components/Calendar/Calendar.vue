@@ -36,9 +36,9 @@ export default {
     window.vue = this;
     window.chineseLunar = chineseLunar;
     // 获取调休日期
-    this.getWorkData(this.date.getFullYear());
+    this.getWorkData();
     // 获取节气日期
-    this.getSolarTerms(this.date.getFullYear());
+    this.getSolarTerms();
   },
   components: {
     FullCalendar
@@ -55,21 +55,15 @@ export default {
         momentTimezonePlugin
       ],
       dayNames: ["日", "一", "二", "三", "四", "五", "六"],
-      workDays: {}, // 调休日期字典：{ "2020-02-02" : "休" }
-      solarTerms: {}, // 节气日期字典： { "2013-02-04": "立春" }
+      workDays: {}, // 调休日期字典：{ "2020" : { "2020-02-02" : "休" } }
+      solarTerms: {}, // 节气日期字典： { "2020" : { "2013-02-04": "立春" } }
       elFocusOn: undefined // 当前点击的元素
     };
   },
   watch: {
-    date(to, from) {
+    date(to) {
       let calendar = this.$refs.fullCalendar.getApi();
       calendar.gotoDate(to);
-
-      // 获取新的数据
-      if (to.getFullYear() !== from.getFullYear()) {
-        this.getWorkData(to.getFullYear());
-        this.getSolarTerms(to.getFullYear());
-      }
 
       // this.clear();
     },
@@ -84,25 +78,19 @@ export default {
   },
   methods: {
     // 获取调休数据
-    getWorkData(year) {
+    getWorkData() {
       this.$request({
         url: "/api/calendar/workDays",
-        method: "get",
-        params: {
-          year: year
-        }
+        method: "get"
       }).then(res => {
         this.workDays = res.data;
       });
     },
     // 获取节气数据
-    getSolarTerms(year) {
+    getSolarTerms() {
       this.$request({
         url: "/api/calendar/solarTerms",
-        method: "get",
-        params: {
-          year: year
-        }
+        method: "get"
       }).then(res => {
         this.solarTerms = res.data;
       });
@@ -193,7 +181,9 @@ export default {
         );
 
         // 显示的节日
-        var solarTerm = this.solarTerms[dateFullString]; // 节气
+        var solarTerm = (this.solarTerms[
+          "" + dayRenderInfo.date.getFullYear()
+        ] || {})[dateFullString]; // 节气
         var solarFestival = this.$store.state.solarFestival[dateString]; // 公历节日
         var lunarFestival = this.$store.state.lunarFestival[lunarDateString]; // 农历节日
         var westFestival = this.$store.state.westFestival[weekdayNumString]; // 西方节日
@@ -201,7 +191,8 @@ export default {
           solarFestival || lunarFestival || westFestival || solarTerm; // 公历节日 > 农历节日 > 西方节日 > 节气
 
         // 显示的上班调休状态：班、休、undefined
-        var workEvent = this.workDays[dateFullString];
+        var workEvent = (this.workDays["" + dayRenderInfo.date.getFullYear()] ||
+          {})[dateFullString];
 
         // 找到日期容器和事件容器
         const divContent = this.getParent(dayRenderInfo.el, "div", "bg")

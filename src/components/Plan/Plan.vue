@@ -53,7 +53,7 @@ export default {
   methods: {
     getAllPlanData() {
       this.$request({
-        url: "/api/plan/all",
+        url: "/api/plans",
         method: "get"
       }).then(res => {
         this.$store.state.fullPlanData = res.data.map(obj => {

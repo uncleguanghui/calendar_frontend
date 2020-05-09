@@ -1,34 +1,11 @@
-// 获取今天的任务
-
-// 日期格式化
-const dateFormat = function(fmt, date) {
-  let ret;
-  const opt = {
-    "Y+": date.getFullYear().toString(), // 年
-    "m+": (date.getMonth() + 1).toString(), // 月
-    "d+": date.getDate().toString(), // 日
-    "H+": date.getHours().toString(), // 时
-    "M+": date.getMinutes().toString(), // 分
-    "S+": date.getSeconds().toString() // 秒
-    // 有其他格式化字符需求可以继续添加，必须转化成字符串
-  };
-  for (let k in opt) {
-    ret = new RegExp("(" + k + ")").exec(fmt);
-    if (ret) {
-      fmt = fmt.replace(
-        ret[1],
-        ret[1].length == 1 ? opt[k] : opt[k].padStart(ret[1].length, "0")
-      );
-    }
-  }
-  return fmt;
-};
+import dateFormat from "@/mock/func/dateFormat";
+import HTTPERROR from "@/mock/func/httpError";
 
 var yestoday = new Date(new Date().setDate(new Date().getDate() - 1));
 var tomorrow = new Date(new Date().setDate(new Date().getDate() + 1));
 
 // status : 1 - 已完成；0 - 未完成
-const plans = [
+let plans = [
   // 昨天
   {
     id: "sddsd",
@@ -137,17 +114,94 @@ const plans = [
   }
 ];
 
-function func(req) {
-  const method = req.method;
+// 添加一个计划
+let addPlan = function(planObj) {
+  if (planObj) {
+    // planObj.id = planObj.id || "121212";
+    plans = [...plans, planObj];
+  }
+  return plans;
+};
+
+// 删除一个计划
+let DeletePlan = function(id) {
+  const targets = plans.filter(obj => obj.id === id);
+  const taget = targets.length === 1 ? targets[0] : null;
+  if (taget) {
+    plans = plans.filter(obj => obj.id !== id);
+    return plans;
+  } else {
+    throw new HTTPERROR(`ID ${id} 不存在`, 404);
+  }
+};
+
+// 获取一个计划
+let getPlan = function(id) {
+  const targets = plans.filter(obj => obj.id === id);
+  const taget = targets.length === 1 ? targets[0] : null;
+  if (taget) {
+    return taget;
+  } else {
+    throw new HTTPERROR(`ID ${id} 不存在`, 404);
+  }
+};
+
+// 修改一个计划
+let updatePlan = function(id, params) {
+  const plans_ = [...plans];
+  const targets = plans_.filter(obj => obj.id === id);
+  const taget = targets.length === 1 ? targets[0] : null;
+  if (taget) {
+    for (let key in params) {
+      if (key in taget) {
+        taget.key = params.key;
+      }
+      plans = plans_;
+    }
+  } else {
+    throw new HTTPERROR(`ID ${id} 不存在`, 404);
+  }
+};
+
+let Plans = function(req) {
   let res = null;
-  switch (method) {
+  switch (req.type) {
+    // 获取所有计划
     case "GET":
       res = plans;
       break;
+    // 创建一个计划
+    case "POST":
+      res = addPlan(JSON.parse(req.body));
+      break;
     default:
-      res = null;
+      break;
   }
+  console.log(req.type, req.url, res);
   return res;
-}
+};
 
-module.exports = func;
+let Plan = function(req) {
+  let res = null;
+  let id = req.url.split("/")[3];
+  switch (req.type) {
+    // 获取一个计划
+    case "GET":
+      res = getPlan(id);
+      break;
+    // 更新一个计划
+    case "PUT":
+      res = updatePlan(id, JSON.parse(req.body));
+      break;
+    // 删除一个计划
+    case "DELETE":
+      res = DeletePlan(id);
+      break;
+    default:
+      break;
+  }
+  console.log(req.type, req.url, res);
+  return res;
+};
+
+export default { Plans, Plan };
