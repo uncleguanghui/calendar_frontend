@@ -75,6 +75,8 @@ Vue.prototype.$moment = moment;
 Vue.prototype.$axios = axios;
 Vue.prototype.$request = request;
 
+process.env.VUE_APP_MOCK && require("./mock/index.js");
+
 new Vue({
   router,
   store,
