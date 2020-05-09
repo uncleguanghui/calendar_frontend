@@ -33,8 +33,6 @@ export default {
     }
   },
   mounted() {
-    window.vue = this;
-    window.chineseLunar = chineseLunar;
     // 获取调休日期
     this.getWorkData();
     // 获取节气日期

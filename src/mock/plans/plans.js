@@ -1,118 +1,57 @@
-import dateFormat from "@/mock/func/dateFormat";
 import HTTPERROR from "@/mock/func/httpError";
+import dateFormat from "@/mock/func/dateFormat";
+import random from "@/mock/func/random";
 
-var yestoday = new Date(new Date().setDate(new Date().getDate() - 1));
-var tomorrow = new Date(new Date().setDate(new Date().getDate() + 1));
+let Mock = require("mockjs");
 
-// status : 1 - 已完成；0 - 未完成
-let plans = [
-  // 昨天
-  {
-    id: "sddsd",
-    groupId: "aabbccdd",
-    title: "买菜1",
-    star: false,
+let dayMS = 60 * 60 * 24 * 1000; //一天的毫秒数
+let monthMS = dayMS * 30; //一个月的毫秒数
+let levels = ["high", "medium", "low", "none", null];
+let tags = Mock.mock({ "tags|6": ["@province"] }).tags;
+
+// 由于 mockjs 生成的时间无法控制，所以单独写一个方法，用以生成一个时间
+// 生成的时间范围：上个月的此刻~下个月的此刻
+// 允许在生成的时间上加一个偏差（单位是毫秒）
+function randomDate(seed = 2020, bias = 0) {
+  let deltaMS = random.rand(monthMS, seed);
+  let symbol = random.rnd(seed) >= 0.5 ? 1 : -1;
+  let time = new Date().getTime() + symbol * deltaMS + bias;
+  return new Date(time);
+}
+
+// 随机生成一个日期字符串对象
+function randomDateStringPair(seed) {
+  let start = randomDate(seed);
+  let end = randomDate(seed, Mock.mock(`@integer(1,${3 * dayMS})`));
+  return {
+    start: dateFormat("Y-mm-dd HH:MM:SS", start), //开始时间
+    end: dateFormat("Y-mm-dd HH:MM:SS", end) //结束时间
+  };
+}
+
+let plans = [];
+for (let index = 0; index < Mock.mock("@integer(1, 30)"); index++) {
+  let time = randomDateStringPair(Mock.mock("@integer"));
+  let plan = {
+    id: Mock.mock("@string"), // 计划ID
+    groupId: Mock.mock("@string"), //计划书ID
+    title: Mock.mock("@ctitle(1, 30)"), // 标题，1~50字
+    star: Mock.mock("@boolean"), // 是否收藏，boolean
     alarmStrategy: "买菜1",
-    start: dateFormat("Y-mm-dd H:M:S", new Date(yestoday.setHours(12))),
-    end: dateFormat("Y-mm-dd H:M:S", new Date(yestoday.setHours(13))),
-    status: 1,
-    allDay: false,
-    position: "",
     typeId: "life",
-    level: "high",
-    tags: ["买菜"],
-    backgroundColor: "#00bcbc",
-    description: ""
-  },
-  {
-    id: "bcvbdfghd",
-    groupId: "aabbccdd",
-    title: "买菜2",
-    star: true,
-    alarmStrategy: "买菜2",
-    start: dateFormat("Y-mm-dd H:M:S", new Date(yestoday.setHours(12))),
-    end: dateFormat("Y-mm-dd H:M:S", new Date(yestoday.setHours(13))),
-    status: 0,
-    allDay: false,
-    position: "",
-    typeId: "life",
-    level: "high",
-    tags: ["买菜"],
-    backgroundColor: "#00bcbc",
-    description:
-      "今天天气真好，打卡喝咖啡哈的看法哈克龙但符合快了吧GV剩女了童话如何IG考哈打瞌睡发快递和覅违规被噶刚收到话费卡会受到发"
-  },
-  // 今天
-  {
-    id: "bdgsdgsd",
-    groupId: "aabbccdd",
-    title: "买菜3",
-    star: true,
-    alarmStrategy: "买菜3",
-    start: dateFormat("Y-mm-dd H:M:S", new Date(new Date().setHours(12))),
-    end: dateFormat("Y-mm-dd H:M:S", new Date(new Date().setHours(13))),
-    status: 1,
-    allDay: false,
-    position: "",
-    typeId: "life",
-    level: "high",
-    tags: ["买菜"],
-    backgroundColor: "#00bcbc",
-    description: "今天天气真好"
-  },
-  {
-    id: "sfgsrgdf",
-    groupId: "aabbccdd",
-    title: "买菜4",
-    star: false,
-    alarmStrategy: "买菜4",
-    start: dateFormat("Y-mm-dd H:M:S", new Date(new Date().setHours(12))),
-    end: dateFormat("Y-mm-dd H:M:S", new Date(new Date().setHours(13))),
-    status: 0,
-    allDay: true,
-    position: "",
-    typeId: "life",
-    level: "high",
-    tags: ["买菜"],
-    backgroundColor: "#00bcbc",
-    description: "今天天气真好"
-  },
-  // 明天
-  {
-    id: "gnhdfhg",
-    groupId: "aabbccdd",
-    title: "买菜5",
-    star: true,
-    alarmStrategy: "买菜5",
-    start: dateFormat("Y-mm-dd H:M:S", new Date(tomorrow.setHours(12))),
-    end: dateFormat("Y-mm-dd H:M:S", new Date(tomorrow.setHours(13))),
-    status: 1,
-    allDay: true,
-    position: "",
-    typeId: "life",
-    level: "high",
-    tags: ["买菜"],
-    backgroundColor: "#00bcbc",
-    description: "今天天气真好"
-  },
-  {
-    id: "rhrthrh",
-    groupId: "aabbccdd",
-    title: "买菜6",
-    star: false,
-    alarmStrategy: "买菜6",
-    start: dateFormat("Y-mm-dd H:M:S", new Date(tomorrow.setHours(12))),
-    end: dateFormat("Y-mm-dd H:M:S", new Date(tomorrow.setHours(13))),
-    status: 0,
-    allDay: true,
-    position: "",
-    typeId: "life",
-    level: "high",
-    tags: ["买菜"],
-    backgroundColor: "#00bcbc",
-    description: "今天天气真好"
-  }
-];
+    status: Mock.mock("@integer(0,1)"), // 完成状态 : 1 - 已完成；0 - 未完成
+    allDay: Mock.mock("@boolean"), // 是否是全天的任务，boolean
+    position: Mock.mock("@city"), // 国内随机城市
+    level: Mock.mock(`@pick(${levels})`), // 优先级
+    tags: Mock.Random.shuffle(tags).slice(
+      Mock.mock(`@integer(0,${tags.length})`)
+    ), // 计划标签，生成一个子集
+    backgroundColor: Mock.mock("@color"), // 背景色
+    description: Mock.mock("@cparagraph(1, 20)"), // 计划描述，1~20段
+    attachments: Mock.mock({ "image|0-3": ["@image"] }).image // 附件——图片，0~3张
+  };
+  plans.push(Object.assign(plan, time));
+}
 
 // 添加一个计划
 let addPlan = function(planObj) {
