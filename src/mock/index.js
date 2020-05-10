@@ -5,6 +5,8 @@ import ApiPlans from "./plans/index";
 import ApiCalendar from "./calendar/index";
 import APIWeather from "./weather/index";
 
+Mock.setup({ timeout: "200-1000" }); // 响应时间介于200毫秒到1000毫秒
+
 Mock.mock("/api/plans", /get|post/i, ApiPlans.Plans);
 Mock.mock(RegExp("/api/plans/.*"), /get|delete|put/i, ApiPlans.Plan); // 模拟符合 restful 规范的的 url
 

@@ -176,7 +176,7 @@
       />
     </div>
   </div>
-  <div v-else-if="planNum > 0" class="task-empty">
+  <div v-else-if="$store.state.currentPlans.length > 0" class="task-empty">
     <img :src="emptyImage" alt="" class="task-empty-image" />
     <div class="task-empty-title">点击标题查看详情</div>
   </div>
@@ -238,6 +238,24 @@ export default {
     },
     handleEndTimeChange(time) {
       this.endTime = time;
+    },
+    getTask() {
+      // 看看选中的计划是否在当前页，如果不在，则不显示
+      let currentPlan = this.$store.state.currentPlan;
+      let currentPlans = this.$store.state.currentPlans;
+      let contain =
+        currentPlans.filter(plan => plan.id === currentPlan.id).length === 1;
+      return contain ? currentPlan : {};
+    }
+  },
+  computed: {
+    task() {
+      // 看看选中的计划是否在当前页，如果不在，则不显示
+      let currentPlan = this.$store.state.currentPlan;
+      let currentPlans = this.$store.state.currentPlans;
+      let contain =
+        currentPlans.filter(plan => plan.id === currentPlan.id).length === 1;
+      return contain ? currentPlan : {};
     }
   },
   watch: {
@@ -246,34 +264,7 @@ export default {
       this.checkedAllDay = to.allDay;
       this.description = to.description;
     }
-  },
-  computed: {
-    task() {
-      // 返回被点击的、且在当前路径下也存在的任务
-      // 如果任务在别的路径下也有，则在点击别的路径时，继续保留任务。
-      const data = this.$store.state.groupPlanData[
-        this.$router.currentRoute.path
-      ];
-      const plans = [
-        ...(data.finished || []),
-        ...(data.expired || []),
-        ...(data.going || [])
-      ];
-      const results =
-        plans.filter(obj => obj.id == this.$store.state.planId) || [];
-      const task = results.length ? results[0] : {};
-      return task;
-    },
-    planNum() {
-      // 当前页面的任务数量
-      const data =
-        this.$store.state.groupPlanData[this.$router.currentRoute.path] || {};
-      const num =
-        (data.finished || []).length +
-        (data.expired || []).length +
-        (data.going || []).length;
-      return num;
-    }
+    // this.$store.state.currentPlan;
   }
 };
 </script>

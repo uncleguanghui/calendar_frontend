@@ -13,7 +13,7 @@
     >
       <a-icon :type="item.icon" :style="{ color: item.color }" />
       {{ item.name }}
-      <span class="right" v-if="planNum(item.key) > 0">
+      <span class="right" v-if="!item.hideNum && planNum(item.key) > 0">
         {{ planNum(item.key) }}
       </span>
     </a-menu-item>
@@ -38,11 +38,29 @@ export default {
       }
     },
     planNum(key) {
-      const data = this.$store.state.groupPlanData[key] || {};
-      const num =
-        (data.finished || []).length +
-        (data.expired || []).length +
-        (data.going || []).length;
+      let num = 0;
+      switch (key) {
+        case "/plan/today":
+          num = this.$store.state.planDataToday.length;
+          break;
+        case "/plan/recent":
+          num = this.$store.state.planDataRecent.length;
+          break;
+        case "/plan/star":
+          num = this.$store.state.planDataStar.length;
+          break;
+        case "/plan/finished":
+          num = this.$store.state.planDataFinished.length;
+          break;
+        case "/plan/all":
+          num = this.$store.state.planDataAll.length;
+          break;
+        case "/plan/trash":
+          num = this.$store.state.planDataTrash.length;
+          break;
+        default:
+          break;
+      }
       return num;
     }
   }

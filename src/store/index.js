@@ -3,48 +3,6 @@ import Vuex from "vuex";
 
 Vue.use(Vuex);
 
-const groupPlanDataTemp = {
-  "/plan/today": {
-    finished: [], //已完成
-    expired: [], //已过期
-    going: [], //进行中
-    highLevel: [], //高
-    mediumLevel: [], //中
-    lowLevel: [], //低
-    noneLevel: [] //无
-  },
-  "/plan/star": {
-    finished: [], //已完成
-    expired: [], //已过期
-    going: [], //进行中
-    highLevel: [], //高
-    mediumLevel: [], //中
-    lowLevel: [], //低
-    noneLevel: [] //无
-  },
-  "/plan/recent": {
-    finished: [], //已完成
-    expired: [], //已过期
-    going: [], //进行中
-    highLevel: [], //高
-    mediumLevel: [], //中
-    lowLevel: [], //低
-    noneLevel: [] //无
-  },
-  "/plan/all": {
-    finished: [], //已完成
-    expired: [], //已过期
-    going: [], //进行中
-    highLevel: [], //高
-    mediumLevel: [], //中
-    lowLevel: [], //低
-    noneLevel: [] //无
-  },
-  "/plan/finished": {
-    finished: [] //已完成
-  }
-};
-
 export default new Vuex.Store({
   state: {
     planSiderMenu: [
@@ -62,12 +20,17 @@ export default new Vuex.Store({
         icon: "check-circle",
         name: "已完成"
       },
-      { key: "/plan/trash", icon: "delete", name: "垃圾桶" }
+      { key: "/plan/trash", icon: "delete", name: "已删除", hideNum: true }
     ], //计划侧边栏
-    planId: undefined, // 当前计划
-    fullPlanData: [], // 所有计划
-    groupPlanData: groupPlanDataTemp, // 分组后的计划
-    groupPlanDataTemp: groupPlanDataTemp, // 分组后的计划模板
+    currentPlan: {}, // 当前计划
+    currentPlans: [], // 当前展开的所有计划
+    planDataFull: [], // 所有计划
+    planDataAll: [], // 全部计划，不包括已删除计划
+    planDataToday: [], // 今日计划，不包括已删除计划
+    planDataRecent: [], // 最近7天计划，不包括已删除计划
+    planDataStar: [], // 已收藏计划，不包括已删除计划
+    planDataFinished: [], // 已完成计划，不包括已删除计划
+    planDataTrash: [], // 已删除计划
     // 图标列表里，图标的位置是有讲究的，按从弱到强以及关联性排序（为了在弱匹配时能返回一个较正确的图标）
     weatherDict: {
       雨: [

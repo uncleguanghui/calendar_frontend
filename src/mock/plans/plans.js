@@ -7,7 +7,7 @@ let Mock = require("mockjs");
 let dayMS = 60 * 60 * 24 * 1000; //一天的毫秒数
 let monthMS = dayMS * 30; //一个月的毫秒数
 let levels = ["high", "medium", "low", "none", null];
-let tags = Mock.mock({ "tags|6": ["@province"] }).tags;
+let tags = ["学习", "上班", "睡觉", "娱乐", "发呆", "目标", "坚持"];
 
 // 由于 mockjs 生成的时间无法控制，所以单独写一个方法，用以生成一个时间
 // 生成的时间范围：上个月的此刻~下个月的此刻
@@ -30,7 +30,7 @@ function randomDateStringPair(seed) {
 }
 
 let plans = [];
-for (let index = 0; index < Mock.mock("@integer(1, 30)"); index++) {
+for (let index = 0; index < Mock.mock("@integer(10, 30)"); index++) {
   let time = randomDateStringPair(Mock.mock("@integer"));
   let plan = {
     id: Mock.mock("@id"), // 计划ID
@@ -41,6 +41,7 @@ for (let index = 0; index < Mock.mock("@integer(1, 30)"); index++) {
     typeId: "life",
     status: Mock.mock("@integer(0,1)"), // 完成状态 : 1 - 已完成；0 - 未完成
     allDay: Mock.mock("@boolean"), // 是否是全天的任务，boolean
+    isDeleted: Mock.mock("@boolean"), // 是否被删除
     position: Mock.mock("@city"), // 国内随机城市
     level: Mock.mock(`@pick(${levels})`), // 优先级
     tags: Mock.Random.shuffle(tags).slice(

@@ -1,18 +1,18 @@
 <template>
-  <div class="page" v-if="data.length > 0">
+  <div class="page" v-if="plans.length > 0">
     <a-collapse
       v-model="activeKey"
       :bordered="false"
       :style="{ backgroundColor: '#fff' }"
     >
-      <a-collapse-panel :key="item.key" v-for="item in data">
+      <a-collapse-panel :key="item.key" v-for="item in plans">
         <div slot="header">
           <span>{{ item.title }}</span>
           <span :style="{ float: 'right' }">{{ item.options.length }}</span>
         </div>
         <div class="checkbox" :key="plan.id" v-for="plan in item.options">
-          <a-checkbox @change="() => onChange(plan.id)" />
-          <div class="checkbox-content" @click="() => clickHandle(plan.id)">
+          <a-checkbox @change="() => onChange(plan)" />
+          <div class="checkbox-content" @click="() => clickHandle(plan)">
             <span class="checkbox-label">{{ plan.title }}</span>
             <div class="checkbox-right">
               {{ plan.endString }}
@@ -71,25 +71,92 @@ export default {
     };
   },
   computed: {
-    data() {
-      const groupPlanData =
-        this.$store.state.groupPlanData[this.$router.currentRoute.path] || {};
-      const result = this.headers[this.selectedSortKey]
-        .map(obj => {
-          obj.options = groupPlanData[obj.key];
-          return obj;
-        })
-        .filter(obj => obj.options && obj.options.length > 0);
-      return result;
+    plans() {
+      return this.groupPlans(this.$store.state.currentPlans);
     }
   },
   methods: {
-    onChange(planId) {
+    onChange(plan) {
       // todo: 添加完成事件
-      console.log(`${planId}已完成`);
+      console.log(`${plan}已完成`);
     },
-    clickHandle(planId) {
-      this.$store.state.planId = planId;
+    clickHandle(plan) {
+      this.$store.state.currentPlan = plan;
+    },
+    // 将数据进行分组
+    groupPlans(plans) {
+      let groups = [];
+      switch (this.selectedSortKey) {
+        case "time":
+          groups = this.sortPlanByTime(plans);
+          break;
+        case "level":
+          groups = this.sortPlanByLevel(plans);
+          break;
+        default:
+          break;
+      }
+      return groups;
+    },
+    // 对计划按照完成状态分组，并按时间排序
+    sortPlanByTime(plans) {
+      // 分组
+      let going = [];
+      let expired = [];
+      let finished = [];
+      for (let plan of plans) {
+        if (plan.isExpired()) {
+          expired.push(plan);
+        } else if (plan.isFinished()) {
+          finished.push(plan);
+        } else if (plan.isGoing()) {
+          going.push(plan);
+        }
+      }
+
+      // 按顺序显示
+      let group = [];
+      if (expired.length) {
+        group.push({ options: expired, title: "已过期", key: "expired" });
+      }
+      if (going.length) {
+        group.push({ options: going, title: "进行中", key: "going" });
+      }
+      if (finished.length) {
+        group.push({ options: finished, title: "已完成", key: "finished" });
+      }
+
+      return group;
+    },
+    // 对计划按照优先级分组
+    sortPlanByLevel(plans) {
+      // 分组
+      let going = [];
+      let expired = [];
+      let finished = [];
+      for (let plan of plans) {
+        if (plan.isExpired()) {
+          expired.push(plan);
+        } else if (plan.isFinished()) {
+          finished.push(plan);
+        } else if (plan.isGoing()) {
+          going.push(plan);
+        }
+      }
+
+      // 按顺序显示
+      let group = [];
+      if (expired.length) {
+        group.push({ options: expired, title: "已过期", key: "expired" });
+      }
+      if (going.length) {
+        group.push({ options: going, title: "进行中", key: "going" });
+      }
+      if (finished.length) {
+        group.push({ options: finished, title: "已完成", key: "finished" });
+      }
+
+      return group;
     },
     // 对计划列表 data ，按照列表内元素的日期进行分组
     groupDate(data) {
