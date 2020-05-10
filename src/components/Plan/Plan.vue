@@ -22,31 +22,30 @@ import PlanHeader from "./PlanHeader";
 export default {
   components: { PlanCollapse, PlanHeader },
   mounted() {
-    if (!this.titles[this.$router.currentRoute.path]) {
+    if (!this.title) {
       this.$router.push("/plan/today");
     }
     this.getAllPlanData();
   },
+  computed: {
+    title() {
+      let menu = this.$store.state.planSiderMenu.filter(
+        item => item.key === this.$router.currentRoute.path
+      );
+      return menu.length === 1 ? menu[0].name : undefined;
+    }
+  },
   data() {
     const publicPath = process.env.BASE_URL;
-    const titles = {
-      "/plan/today": "今天",
-      "/plan/all": "全部",
-      "/plan/recent": "最近7天",
-      "/plan/finished": "已完成"
-    };
     return {
-      titles: titles,
       dayNames: ["日", "一", "二", "三", "四", "五", "六"],
-      title: titles[this.$router.currentRoute.path],
       publicPath: publicPath, // public 文件夹的位置
       selectedSortKey: "time", //排序对象
       selectedDetailKey: "show" // 详情选择情况
     };
   },
   watch: {
-    $route: function(to) {
-      this.title = this.titles[to.path];
+    $route: function() {
       this.updateData();
     }
   },

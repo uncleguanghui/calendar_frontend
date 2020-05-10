@@ -5,6 +5,18 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
   state: {
+    planSiderMenu: [
+      { key: "/plan/today", icon: "calendar", name: "今天" },
+      { key: "/plan/recent", icon: "schedule", name: "最近7天" },
+      { key: "/plan/trash", icon: "trash", name: "垃圾桶" },
+      { key: "/plan/star", icon: "star", name: "我的收藏" },
+      { key: "/plan/all", icon: "profile", name: "全部" },
+      {
+        key: "/plan/finished",
+        icon: "check-circle",
+        name: "已完成"
+      }
+    ], //计划侧边栏
     planId: undefined, //当前计划
     fullPlanData: [], //所有计划
     groupPlanData: {

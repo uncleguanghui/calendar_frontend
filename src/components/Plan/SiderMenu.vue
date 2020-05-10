@@ -6,7 +6,7 @@
     :style="{ lineHeight: '62px', textAlign: 'left' }"
     @click="clickHandle"
   >
-    <a-menu-item :key="item.key" v-for="item in menuItems">
+    <a-menu-item :key="item.key" v-for="item in $store.state.planSiderMenu">
       <a-icon :type="item.icon" />
       {{ item.name }}
       <span class="right" v-if="planNum(item.key) > 0">
@@ -20,22 +20,7 @@
 export default {
   data() {
     return {
-      menuItems: [
-        { key: "/plan/today", icon: "calendar", name: "今天" },
-        { key: "/plan/recent", icon: "schedule", name: "最近7天" },
-        { key: "/plan/all", icon: "profile", name: "全部" },
-        {
-          key: "/plan/finished",
-          icon: "check-circle",
-          name: "已完成"
-        }
-      ],
-      selectedKeys: [
-        this.$router.currentRoute.path
-        // .split("/")
-        // .slice(0, 3)
-        // .join("/")
-      ]
+      selectedKeys: [this.$router.currentRoute.path]
     };
   },
   methods: {
@@ -49,7 +34,7 @@ export default {
       }
     },
     planNum(key) {
-      const data = this.$store.state.groupPlanData[key];
+      const data = this.$store.state.groupPlanData[key] || {};
       const num =
         (data.finished || []).length +
         (data.expired || []).length +
