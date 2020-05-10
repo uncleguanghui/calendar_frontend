@@ -11,12 +11,27 @@
           <span :style="{ float: 'right' }">{{ item.options.length }}</span>
         </div>
         <div class="checkbox" :key="plan.id" v-for="plan in item.options">
+          <!-- 选择框 -->
           <a-checkbox @change="() => onChange(plan)" />
           <div class="checkbox-content" @click="() => clickHandle(plan)">
-            <span class="checkbox-label">{{ plan.title }}</span>
+            <!-- 标题 -->
+            <span class="checkbox-label">
+              <a-avatar
+                shape="square"
+                v-if="getLevelImage(plan.level)"
+                :src="getLevelImage(plan.level)"
+                :size="18"
+                :style="{ margin: '0 5px 2px 0' }"
+              />
+              {{ plan.title }}
+            </span>
+            <!-- 右上角日期 -->
             <div class="checkbox-right">
-              {{ plan.endString }}
+              <span :style="{ color: plan.isExpired() ? '#ff4d4f' : '' }">
+                {{ plan.endString }}
+              </span>
             </div>
+            <!-- 底部的任务描述 -->
             <div
               v-if="selectedDetailKey === 'show'"
               class="checkbox-description"
@@ -63,6 +78,7 @@ export default {
       ]
     };
     return {
+      publicPath: publicPath,
       headers: headers,
       activeKey: headers[this.selectedSortKey]
         .map(obj => obj.key)
@@ -76,6 +92,23 @@ export default {
     }
   },
   methods: {
+    getLevelImage(level) {
+      let name = undefined;
+      switch (level) {
+        case "high":
+          name = "高优先级.png";
+          break;
+        case "medium":
+          name = "中优先级.png";
+          break;
+        case "low":
+          name = "低优先级.png";
+          break;
+        default:
+          break;
+      }
+      return name ? this.publicPath + "icons/" + name : undefined;
+    },
     onChange(plan) {
       // todo: 添加完成事件
       console.log(`${plan}已完成`);
@@ -219,21 +252,14 @@ export default {
   padding-left: 10px;
 }
 
-.checkbox-label {
-  font-weight: bold;
-}
-
 .checkbox-right {
   right: 15px;
   display: inline-block;
   position: absolute;
 }
 
+.checkbox-label,
 .checkbox-description {
-  font-size: 8px;
-  margin-left: 25px;
-  line-height: 2;
-  border-bottom: 1px solid #ececec;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -241,8 +267,22 @@ export default {
   -webkit-box-orient: vertical;
   word-break: break-all;
   width: 100%;
-  display: block;
+  display: inline-block;
+}
+
+.checkbox-description {
+  font-size: 8px;
+  margin-left: 25px;
+  line-height: 2;
+  border-bottom: 1px solid #ececec;
   max-width: calc(100% - 20px);
+}
+
+.checkbox-label {
+  font-weight: bold;
+  max-width: calc(100% - 100px);
+  top: 5px;
+  position: relative;
 }
 
 /* 隐藏下边栏 */
