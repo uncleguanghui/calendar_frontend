@@ -1,3 +1,4 @@
+// 参考文档：http://mockjs.com/examples.html
 const Mock = require("mockjs");
 
 import ApiPlans from "./plans/index";

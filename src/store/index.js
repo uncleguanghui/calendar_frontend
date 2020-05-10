@@ -3,54 +3,71 @@ import Vuex from "vuex";
 
 Vue.use(Vuex);
 
+const groupPlanDataTemp = {
+  "/plan/today": {
+    finished: [], //已完成
+    expired: [], //已过期
+    going: [], //进行中
+    highLevel: [], //高
+    mediumLevel: [], //中
+    lowLevel: [], //低
+    noneLevel: [] //无
+  },
+  "/plan/star": {
+    finished: [], //已完成
+    expired: [], //已过期
+    going: [], //进行中
+    highLevel: [], //高
+    mediumLevel: [], //中
+    lowLevel: [], //低
+    noneLevel: [] //无
+  },
+  "/plan/recent": {
+    finished: [], //已完成
+    expired: [], //已过期
+    going: [], //进行中
+    highLevel: [], //高
+    mediumLevel: [], //中
+    lowLevel: [], //低
+    noneLevel: [] //无
+  },
+  "/plan/all": {
+    finished: [], //已完成
+    expired: [], //已过期
+    going: [], //进行中
+    highLevel: [], //高
+    mediumLevel: [], //中
+    lowLevel: [], //低
+    noneLevel: [] //无
+  },
+  "/plan/finished": {
+    finished: [] //已完成
+  }
+};
+
 export default new Vuex.Store({
   state: {
     planSiderMenu: [
       { key: "/plan/today", icon: "calendar", name: "今天" },
       { key: "/plan/recent", icon: "schedule", name: "最近7天" },
-      { key: "/plan/trash", icon: "trash", name: "垃圾桶" },
-      { key: "/plan/star", icon: "star", name: "我的收藏" },
-      { key: "/plan/all", icon: "profile", name: "全部" },
+      { key: "/plan/star", icon: "star", name: "我的收藏", color: "#ffc53d" },
+      {
+        key: "/plan/all",
+        icon: "profile",
+        name: "全部",
+        style: { borderBottom: "1px dashed #d9d9d9" }
+      },
       {
         key: "/plan/finished",
         icon: "check-circle",
         name: "已完成"
-      }
+      },
+      { key: "/plan/trash", icon: "delete", name: "垃圾桶" }
     ], //计划侧边栏
-    planId: undefined, //当前计划
-    fullPlanData: [], //所有计划
-    groupPlanData: {
-      "/plan/today": {
-        finished: [], //已完成
-        expired: [], //已过期
-        going: [], //进行中
-        highLevel: [], //高
-        mediumLevel: [], //中
-        lowLevel: [], //低
-        noneLevel: [] //无
-      },
-      "/plan/recent": {
-        finished: [], //已完成
-        expired: [], //已过期
-        going: [], //进行中
-        highLevel: [], //高
-        mediumLevel: [], //中
-        lowLevel: [], //低
-        noneLevel: [] //无
-      },
-      "/plan/all": {
-        finished: [], //已完成
-        expired: [], //已过期
-        going: [], //进行中
-        highLevel: [], //高
-        mediumLevel: [], //中
-        lowLevel: [], //低
-        noneLevel: [] //无
-      },
-      "/plan/finished": {
-        finished: [] //已完成
-      }
-    }, //所有计划（分组后）
+    planId: undefined, // 当前计划
+    fullPlanData: [], // 所有计划
+    groupPlanData: groupPlanDataTemp, // 分组后的计划
+    groupPlanDataTemp: groupPlanDataTemp, // 分组后的计划模板
     // 图标列表里，图标的位置是有讲究的，按从弱到强以及关联性排序（为了在弱匹配时能返回一个较正确的图标）
     weatherDict: {
       雨: [

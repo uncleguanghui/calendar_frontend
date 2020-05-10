@@ -90,6 +90,36 @@ export default {
     },
     clickHandle(planId) {
       this.$store.state.planId = planId;
+    },
+    // 对计划列表 data ，按照列表内元素的日期进行分组
+    groupDate(data) {
+      // 对进行中的任务，按日期进行分组
+      var datePlans = {};
+      for (let plan of data) {
+        const key = new Date(plan.end).toDateString();
+        if (datePlans[key]) {
+          datePlans[key].push(plan);
+        } else {
+          datePlans[key] = [plan];
+        }
+      }
+      // 按日期降序
+      return Array.from(
+        new Set(data.map(plan => new Date(plan.end).toDateString()))
+      )
+        .sort((a, b) => new Date(b) - new Date(a))
+        .map(date => {
+          return {
+            title:
+              "周" +
+              this.dayNames[new Date(date).getDay()] +
+              ", " +
+              (new Date(date).toDateString() === new Date().toDateString()
+                ? "今天"
+                : this.$dateFormat("m月d日", new Date(date))),
+            data: datePlans[date]
+          };
+        });
     }
   }
 };

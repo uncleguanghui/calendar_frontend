@@ -6,8 +6,12 @@
     :style="{ lineHeight: '62px', textAlign: 'left' }"
     @click="clickHandle"
   >
-    <a-menu-item :key="item.key" v-for="item in $store.state.planSiderMenu">
-      <a-icon :type="item.icon" />
+    <a-menu-item
+      :key="item.key"
+      v-for="item in $store.state.planSiderMenu"
+      :style="item.style"
+    >
+      <a-icon :type="item.icon" :style="{ color: item.color }" />
       {{ item.name }}
       <span class="right" v-if="planNum(item.key) > 0">
         {{ planNum(item.key) }}

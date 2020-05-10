@@ -123,29 +123,6 @@ export default {
       }
       return find ? t : undefined;
     },
-    // 格式化日期
-    dateFormat(fmt, date) {
-      let ret;
-      const opt = {
-        "Y+": date.getFullYear().toString(), // 年
-        "m+": (date.getMonth() + 1).toString(), // 月
-        "d+": date.getDate().toString(), // 日
-        "H+": date.getHours().toString(), // 时
-        "M+": date.getMinutes().toString(), // 分
-        "S+": date.getSeconds().toString() // 秒
-        // 有其他格式化字符需求可以继续添加，必须转化成字符串
-      };
-      for (let k in opt) {
-        ret = new RegExp("(" + k + ")").exec(fmt);
-        if (ret) {
-          fmt = fmt.replace(
-            ret[1],
-            ret[1].length == 1 ? opt[k] : opt[k].padStart(ret[1].length, "0")
-          );
-        }
-      }
-      return fmt;
-    },
     // 几月第几个周期
     weekdayNum(date) {
       var n = parseInt((date.getDate() - 1) / 7) + 1; // 第几个
@@ -167,13 +144,13 @@ export default {
         // 今天是几月第几个周期
         var weekdayNumString = this.weekdayNum(dayRenderInfo.date);
         // 格式化后的公历日期
-        var dateString = this.dateFormat("mm-dd", dayRenderInfo.date);
-        var dateFullString = this.dateFormat("Y-mm-dd", dayRenderInfo.date);
+        var dateString = this.$dateFormat("mm-dd", dayRenderInfo.date);
+        var dateFullString = this.$dateFormat("Y-mm-dd", dayRenderInfo.date);
         // 农历
         var lunarDate = chineseLunar.solarToLunar(dayRenderInfo.date);
         var lunarString = chineseLunar.format(lunarDate, "D");
         // 格式化后的农历
-        var lunarDateString = this.dateFormat(
+        var lunarDateString = this.$dateFormat(
           "mm-dd",
           new Date(2020, lunarDate.month - 1, lunarDate.day)
         );

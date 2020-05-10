@@ -1,5 +1,5 @@
 // 从某天开始获取之后的N天
-import dateFormat from "./dateFormat";
+import dateFormat from "@/utils/dateFormat";
 
 export default function(date, days) {
   var dates = [];

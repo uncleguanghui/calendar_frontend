@@ -18,6 +18,7 @@
 <script>
 import PlanCollapse from "./PlanCollapse";
 import PlanHeader from "./PlanHeader";
+import dateFormat from "@/utils/dateFormat";
 
 export default {
   components: { PlanCollapse, PlanHeader },
@@ -50,40 +51,109 @@ export default {
     }
   },
   methods: {
+    // 计划对象
+    Plan(plan) {
+      var obj = new Object();
+
+      // 基础属性
+      obj.id = plan.id;
+      obj.groupId = plan.groupId;
+      obj.title = plan.title;
+      obj.star = plan.star;
+      obj.alarmStrategy = plan.alarmStrategy;
+      obj.typeId = plan.typeId;
+      obj.status = plan.status;
+      obj.allDay = plan.allDay;
+      obj.position = plan.position;
+      obj.level = plan.level;
+      obj.tags = plan.tags;
+      obj.backgroundColor = plan.backgroundColor;
+      obj.description = plan.description;
+      obj.attachments = plan.attachments;
+      obj.start = plan.start;
+      obj.end = plan.end;
+
+      // 附加属性
+      obj.endString = dateFormat("m月d日", new Date(obj.end));
+      obj.startDate = new Date(obj.start); //开始时间
+      obj.endDate = new Date(obj.end); //结束时间
+      obj.finishDate = obj.finish ? new Date(obj.finish) : undefined; //完成时间
+
+      // 计算函数
+      obj.isExpired = function() {
+        return obj.status === 0 && obj.endDate <= new Date();
+      };
+      obj.isFinished = function() {
+        return obj.status === 1;
+      };
+      obj.isFinishedToday = function() {
+        if (obj.isFinished()) {
+          const today0 = new Date(new Date().setHours(0, 0, 0, 0)); // 今天0点
+          const tomorrow0 = new Date(today0).setDate(today0.getDate() + 1); // 明天0点
+          return (
+            (obj.endDate >= today0 && obj.endDate < tomorrow0) ||
+            (obj.finishDate &&
+              obj.finishDate >= today0 &&
+              obj.finishDate < tomorrow0)
+          );
+        } else {
+          return false;
+        }
+      };
+      obj.isFinishedRecent = function() {
+        if (obj.isFinished()) {
+          const today0 = new Date(new Date().setHours(0, 0, 0, 0)); // 今天0点
+          const future0 = new Date(today0).setDate(today0.getDate() + 7); // 7天后的0点
+          return (
+            (obj.endDate >= today0 && obj.endDate < future0) ||
+            (obj.finishDate &&
+              obj.finishDate >= today0 &&
+              obj.finishDate < future0)
+          );
+        } else {
+          return false;
+        }
+      };
+      obj.isGoing = function() {
+        return obj.status === 0 && obj.endDate > new Date();
+      };
+      obj.isGoingToday = function() {
+        if (obj.isGoing()) {
+          const today0 = new Date(new Date().setHours(0, 0, 0, 0)); // 今天0点
+          const tomorrow0 = new Date(today0).setDate(today0.getDate() + 1); // 明天0点
+          return !(obj.startDate > tomorrow0);
+        } else {
+          return false;
+        }
+      };
+      obj.isGoingRecent = function() {
+        if (obj.isGoing()) {
+          const today0 = new Date(new Date().setHours(0, 0, 0, 0)); // 今天0点
+          const future0 = new Date(today0).setDate(today0.getDate() + 7); // 7天后的0点
+          return !(obj.startDate > future0);
+        } else {
+          return false;
+        }
+      };
+      obj.belongToday = function() {
+        return obj.isExpired() || obj.isFinishedToday() || obj.isGoingToday();
+      };
+      obj.belongRecent = function() {
+        return obj.isExpired() || obj.isFinishedRecent() || obj.isGoingRecent();
+      };
+
+      return obj;
+    },
     getAllPlanData() {
       this.$request({
         url: "/api/plans",
         method: "get"
       }).then(res => {
-        this.$store.state.fullPlanData = res.data.map(obj => {
-          obj.endString = this.dateFormat("m月d日", new Date(obj.end));
-          return obj;
-        });
+        this.$store.state.fullPlanData = res.data.map(
+          obj => new this.Plan(obj)
+        );
         this.updateData();
       });
-    },
-    // 日期格式化
-    dateFormat(fmt, date) {
-      let ret;
-      const opt = {
-        "Y+": date.getFullYear().toString(), // 年
-        "m+": (date.getMonth() + 1).toString(), // 月
-        "d+": date.getDate().toString(), // 日
-        "H+": date.getHours().toString(), // 时
-        "M+": date.getMinutes().toString(), // 分
-        "S+": date.getSeconds().toString() // 秒
-        // 有其他格式化字符需求可以继续添加，必须转化成字符串
-      };
-      for (let k in opt) {
-        ret = new RegExp("(" + k + ")").exec(fmt);
-        if (ret) {
-          fmt = fmt.replace(
-            ret[1],
-            ret[1].length == 1 ? opt[k] : opt[k].padStart(ret[1].length, "0")
-          );
-        }
-      }
-      return fmt;
     },
     // 数据分组
     updateData() {
@@ -105,209 +175,124 @@ export default {
       // 已完成-最近7天：状态为1，且满足以下任意一个条件：1）结束时间在今天0点~6天后的24点（含）之间；2）完成时间在今天0点~6天后的24点（含）之间
       // 已完成-全部：状态为1
 
-      const current = new Date(); //当前时间
-      const today0 = new Date(new Date().toDateString()); //今天0点
-      const today24 = new Date(new Date().toDateString()); //今天24点
-      today24.setDate(today24.getDate() + 1);
-      const future7 = new Date(new Date().toDateString()); //6天后的24点
-      future7.setDate(future7.getDate() + 7);
+      var result = JSON.parse(
+        JSON.stringify(this.$store.state.groupPlanDataTemp)
+      ); //最终结果
 
-      var result = {
-        "/plan/today": {
-          finished: [], //已完成
-          expired: [], //已过期
-          going: [], //进行中
-          highLevel: [], //高
-          mediumLevel: [], //中
-          lowLevel: [], //低
-          noneLevel: [] //无
-        },
-        "/plan/recent": {
-          finished: [], //已完成
-          expired: [], //已过期
-          going: [], //进行中
-          highLevel: [], //高
-          mediumLevel: [], //中
-          lowLevel: [], //低
-          noneLevel: [] //无
-        },
-        "/plan/all": {
-          finished: [], //已完成
-          expired: [], //已过期
-          going: [], //进行中
-          highLevel: [], //高
-          mediumLevel: [], //中
-          lowLevel: [], //低
-          noneLevel: [] //无
-        },
-        "/plan/finished": {
-          finished: [] //已完成
+      function pushLevel(key, plan) {
+        switch (plan.level) {
+          case "high":
+            result[key].highLevel.push(plan);
+            break;
+          case "medium":
+            result[key].mediumLevel.push(plan);
+            break;
+          case "low":
+            result[key].lowLevel.push(plan);
+            break;
+          case "none":
+            result[key].noneLevel.push(plan);
+            break;
+          default:
+            break;
         }
-      }; //最终结果
+      }
 
       // 1、先对计划按照完成状态进行分组
       for (let plan of this.$store.state.fullPlanData) {
-        // 任务的各种时间
-        const start = new Date(plan.start); //开始时间
-        const end = new Date(plan.end); //结束时间
-        const finish = plan.finish ? new Date(plan.finish) : undefined; //完成时间
-
         // 1）过期状态
-        const isExpired = plan.status === 0 && end <= current;
-        if (isExpired) {
+        if (plan.isExpired()) {
           result["/plan/today"].expired.push(plan);
           result["/plan/recent"].expired.push(plan);
-          result["/plan/all"].expired.push(plan);
-          if (plan.level === "high") {
-            result["/plan/today"].highLevel.push(plan);
-            result["/plan/recent"].highLevel.push(plan);
-            result["/plan/all"].highLevel.push(plan);
-          } else if (plan.level === "medium") {
-            result["/plan/today"].mediumLevel.push(plan);
-            result["/plan/recent"].mediumLevel.push(plan);
-            result["/plan/all"].mediumLevel.push(plan);
-          } else if (plan.level === "low") {
-            result["/plan/today"].lowLevel.push(plan);
-            result["/plan/recent"].lowLevel.push(plan);
-            result["/plan/all"].lowLevel.push(plan);
-          } else if (plan.level === "none") {
-            result["/plan/today"].noneLevel.push(plan);
-            result["/plan/recent"].noneLevel.push(plan);
-            result["/plan/all"].noneLevel.push(plan);
+          if (plan.star) {
+            result["/plan/star"].expired.push(plan);
           }
+          result["/plan/all"].expired.push(plan);
         }
 
         // 2）完成状态
-        const isFinished = plan.status === 1;
-        if (isFinished) {
-          const isFinishedToday =
-            isFinished &&
-            ((end > today0 && end <= today24) ||
-              (finish && finish > today0 && finish <= today24));
-          const isFinishedRecent =
-            isFinished &&
-            ((end > today0 && end <= future7) ||
-              (finish && finish > today0 && finish <= future7));
-
-          if (isFinishedToday) {
-            result["/plan/today"].finished.push(plan);
-          }
-          if (isFinishedRecent) {
-            result["/plan/recent"].finished.push(plan);
+        if (plan.isFinishedToday()) {
+          result["/plan/today"].finished.push(plan);
+        }
+        if (plan.isFinishedRecent()) {
+          result["/plan/recent"].finished.push(plan);
+        }
+        if (plan.isFinished()) {
+          if (plan.star) {
+            result["/plan/star"].finished.push(plan);
           }
           result["/plan/all"].finished.push(plan);
           result["/plan/finished"].finished.push(plan);
         }
 
         // 3）进行状态
-        const isGoing = plan.status === 0 && end > current;
-        if (isGoing) {
-          const isGoingToday =
-            isGoing && (end <= today24 || (end > today24 && start <= today0));
-          const isGoingRecent =
-            isGoing && (end <= future7 || (end > future7 && start <= today0));
-
-          if (isGoingToday) {
-            result["/plan/today"].going.push(plan);
-            if (plan.level === "high") {
-              result["/plan/today"].highLevel.push(plan);
-            } else if (plan.level === "medium") {
-              result["/plan/today"].mediumLevel.push(plan);
-            } else if (plan.level === "low") {
-              result["/plan/today"].lowLevel.push(plan);
-            } else if (plan.level === "none") {
-              result["/plan/today"].noneLevel.push(plan);
-            }
-          }
-          if (isGoingRecent) {
-            result["/plan/recent"].going.push(plan);
-            if (plan.level === "high") {
-              result["/plan/recent"].highLevel.push(plan);
-            } else if (plan.level === "medium") {
-              result["/plan/recent"].mediumLevel.push(plan);
-            } else if (plan.level === "low") {
-              result["/plan/recent"].lowLevel.push(plan);
-            } else if (plan.level === "none") {
-              result["/plan/recent"].noneLevel.push(plan);
-            }
+        if (plan.isGoingToday()) {
+          result["/plan/today"].going.push(plan);
+        }
+        if (plan.isGoingRecent()) {
+          result["/plan/recent"].going.push(plan);
+        }
+        if (plan.isGoing()) {
+          if (plan.star) {
+            result["/plan/star"].going.push(plan);
           }
           result["/plan/all"].going.push(plan);
-          if (plan.level === "high") {
-            result["/plan/all"].highLevel.push(plan);
-          } else if (plan.level === "medium") {
-            result["/plan/all"].mediumLevel.push(plan);
-          } else if (plan.level === "low") {
-            result["/plan/all"].lowLevel.push(plan);
-          } else if (plan.level === "none") {
-            result["/plan/all"].noneLevel.push(plan);
-          }
         }
+
+        // 4）优先级
+        if (plan.belongToday()) {
+          pushLevel("/plan/today", plan);
+        }
+        if (plan.belongRecent()) {
+          pushLevel("/plan/recent", plan);
+        }
+        if (plan.star) {
+          pushLevel("/plan/star", plan);
+        }
+        pushLevel("/plan/all", plan);
       }
 
       // 2、对结果按照结束时间升序
-      const sortTime = function(a, b, reverse, key) {
+      function sortTimeFunc(a, b, reverse, key) {
         if (reverse) {
           // 降序：数组中两两比较，b大于a时，ab互换，b在前面
           return new Date(b[key]) - new Date(a[key]);
         } else {
           return new Date(a[key]) - new Date(b[key]);
         }
-      };
-      const sortEndTime = (a, b) => sortTime(a, b, false, "end");
-      result["/plan/today"].expired.sort(sortEndTime);
-      result["/plan/today"].going.sort(sortEndTime);
-      result["/plan/today"].finished.sort(sortEndTime);
-      result["/plan/today"].highLevel.sort(sortEndTime);
-      result["/plan/today"].mediumLevel.sort(sortEndTime);
-      result["/plan/today"].lowLevel.sort(sortEndTime);
-      result["/plan/today"].noneLevel.sort(sortEndTime);
-      result["/plan/recent"].expired.sort(sortEndTime);
-      result["/plan/recent"].going.sort(sortEndTime);
-      result["/plan/recent"].finished.sort(sortEndTime);
-      result["/plan/recent"].highLevel.sort(sortEndTime);
-      result["/plan/recent"].mediumLevel.sort(sortEndTime);
-      result["/plan/recent"].lowLevel.sort(sortEndTime);
-      result["/plan/recent"].noneLevel.sort(sortEndTime);
-      result["/plan/all"].expired.sort(sortEndTime);
-      result["/plan/all"].going.sort(sortEndTime);
-      result["/plan/all"].finished.sort(sortEndTime);
-      result["/plan/all"].highLevel.sort(sortEndTime);
-      result["/plan/all"].mediumLevel.sort(sortEndTime);
-      result["/plan/all"].lowLevel.sort(sortEndTime);
-      result["/plan/all"].noneLevel.sort(sortEndTime);
-      result["/plan/finished"].finished.sort(sortEndTime);
+      }
+      const sortTime = (a, b) => sortTimeFunc(a, b, false, "end");
+      result["/plan/today"].expired.sort(sortTime);
+      result["/plan/today"].going.sort(sortTime);
+      result["/plan/today"].finished.sort(sortTime);
+      result["/plan/today"].highLevel.sort(sortTime);
+      result["/plan/today"].mediumLevel.sort(sortTime);
+      result["/plan/today"].lowLevel.sort(sortTime);
+      result["/plan/today"].noneLevel.sort(sortTime);
+      result["/plan/recent"].expired.sort(sortTime);
+      result["/plan/recent"].going.sort(sortTime);
+      result["/plan/recent"].finished.sort(sortTime);
+      result["/plan/recent"].highLevel.sort(sortTime);
+      result["/plan/recent"].mediumLevel.sort(sortTime);
+      result["/plan/recent"].lowLevel.sort(sortTime);
+      result["/plan/recent"].noneLevel.sort(sortTime);
+      result["/plan/star"].expired.sort(sortTime);
+      result["/plan/star"].going.sort(sortTime);
+      result["/plan/star"].finished.sort(sortTime);
+      result["/plan/star"].highLevel.sort(sortTime);
+      result["/plan/star"].mediumLevel.sort(sortTime);
+      result["/plan/star"].lowLevel.sort(sortTime);
+      result["/plan/star"].noneLevel.sort(sortTime);
+      result["/plan/all"].expired.sort(sortTime);
+      result["/plan/all"].going.sort(sortTime);
+      result["/plan/all"].finished.sort(sortTime);
+      result["/plan/all"].highLevel.sort(sortTime);
+      result["/plan/all"].mediumLevel.sort(sortTime);
+      result["/plan/all"].lowLevel.sort(sortTime);
+      result["/plan/all"].noneLevel.sort(sortTime);
+      result["/plan/finished"].finished.sort(sortTime);
 
       this.$store.state.groupPlanData = result;
-    },
-    // 对计划列表 data ，按照列表内元素的日期进行分组
-    groupDate(data) {
-      // 对进行中的任务，按日期进行分组
-      var datePlans = {};
-      for (let plan of data) {
-        const key = new Date(plan.end).toDateString();
-        if (datePlans[key]) {
-          datePlans[key].push(plan);
-        } else {
-          datePlans[key] = [plan];
-        }
-      }
-      // 按日期降序
-      return Array.from(
-        new Set(data.map(plan => new Date(plan.end).toDateString()))
-      )
-        .sort((a, b) => new Date(b) - new Date(a))
-        .map(date => {
-          return {
-            title:
-              "周" +
-              this.dayNames[new Date(date).getDay()] +
-              ", " +
-              (new Date(date).toDateString() === new Date().toDateString()
-                ? "今天"
-                : this.dateFormat("m月d日", new Date(date))),
-            data: datePlans[date]
-          };
-        });
     }
   }
 };

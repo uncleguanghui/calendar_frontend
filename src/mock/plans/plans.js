@@ -1,5 +1,5 @@
 import HTTPERROR from "@/mock/func/httpError";
-import dateFormat from "@/mock/func/dateFormat";
+import dateFormat from "@/utils/dateFormat";
 import random from "@/mock/func/random";
 
 let Mock = require("mockjs");
@@ -33,8 +33,8 @@ let plans = [];
 for (let index = 0; index < Mock.mock("@integer(1, 30)"); index++) {
   let time = randomDateStringPair(Mock.mock("@integer"));
   let plan = {
-    id: Mock.mock("@string"), // 计划ID
-    groupId: Mock.mock("@string"), //计划书ID
+    id: Mock.mock("@id"), // 计划ID
+    groupId: Mock.mock("@id"), //计划书ID
     title: Mock.mock("@ctitle(1, 30)"), // 标题，1~50字
     star: Mock.mock("@boolean"), // 是否收藏，boolean
     alarmStrategy: "买菜1",
