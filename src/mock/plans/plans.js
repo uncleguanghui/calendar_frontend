@@ -90,14 +90,15 @@ let getPlan = function(id) {
 let updatePlan = function(id, params) {
   const plans_ = [...plans];
   const targets = plans_.filter(obj => obj.id === id);
-  const taget = targets.length === 1 ? targets[0] : null;
-  if (taget) {
+  const target = targets.length === 1 ? targets[0] : null;
+  if (target) {
     for (let key in params) {
-      if (key in taget) {
-        taget.key = params.key;
+      if (key in target) {
+        target[key] = params[key];
       }
-      plans = plans_;
     }
+    plans = plans_;
+    return target;
   } else {
     throw new HTTPERROR(`ID ${id} 不存在`, 404);
   }
@@ -140,7 +141,7 @@ let Plan = function(req) {
     default:
       break;
   }
-  console.log(req.type, req.url, res);
+  console.log(req.type, req.url, req.body, res);
   return res;
 };
 

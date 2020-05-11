@@ -35,6 +35,7 @@ import moment from "moment";
 import "moment/locale/zh-cn";
 import request from "./utils/request";
 import dateFormat from "./utils/dateFormat";
+import Plan from "./utils/planObj";
 import VueClipboard from "vue-clipboard2";
 
 moment.locale("zh-cn");
@@ -76,6 +77,7 @@ Vue.prototype.$moment = moment;
 Vue.prototype.$axios = axios;
 Vue.prototype.$request = request;
 Vue.prototype.$dateFormat = dateFormat;
+Vue.prototype.$Plan = Plan;
 
 process.env.VUE_APP_MOCK && require("./mock/index.js");
 

@@ -13,7 +13,7 @@
     >
       <a-icon :type="item.icon" :style="{ color: item.color }" />
       {{ item.name }}
-      <span class="right" v-if="!item.hideNum && planNum(item.key) > 0">
+      <span class="right" v-if="planNum(item.key) > 0">
         {{ planNum(item.key) }}
       </span>
     </a-menu-item>

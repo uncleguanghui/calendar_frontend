@@ -82,7 +82,9 @@ export default {
   },
   computed: {
     plans() {
-      return this.groupPlans(this.$store.state.currentPlans);
+      let plans = this.groupPlans(this.$store.state.currentPlans);
+      console.log("4 在列表页成功获取到最新数据");
+      return plans;
     }
   },
   methods: {
