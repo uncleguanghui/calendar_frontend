@@ -28,7 +28,7 @@
             <!-- 右上角日期 -->
             <div class="checkbox-right">
               <span :style="{ color: plan.isExpired() ? '#ff4d4f' : '' }">
-                {{ plan.endString }}
+                {{ plan.startString }}
               </span>
             </div>
             <!-- 底部的任务描述 -->
@@ -63,28 +63,22 @@ export default {
   },
   data() {
     const publicPath = process.env.BASE_URL;
-    const headers = {
-      level: [
-        { key: "highLevel", title: "高优先级" },
-        { key: "mediumLevel", title: "中优先级" },
-        { key: "lowLevel", title: "低优先级" },
-        { key: "noneLevel", title: "无优先级" },
-        { key: "finished", title: "已完成" }
-      ],
-      time: [
-        { key: "expired", title: "已过期" },
-        { key: "going", title: "进行中" },
-        { key: "finished", title: "已完成" }
-      ]
-    };
     return {
       publicPath: publicPath,
-      headers: headers,
-      activeKey: headers[this.selectedSortKey]
-        .map(obj => obj.key)
-        .filter(key => key !== "finished"),
+      activeKey: [],
       emptyImage: publicPath + "images/" + "Relax.svg"
     };
+  },
+  watch: {
+    plans(to) {
+      // 如果只有已完成，则全展开，否则仅不展开已完成
+      let keys = to.map(obj => obj.key);
+      if (keys.length === 1) {
+        this.activeKey = keys;
+      } else {
+        this.activeKey = keys.filter(key => key !== "finished");
+      }
+    }
   },
   computed: {
     plans() {
@@ -147,6 +141,11 @@ export default {
         }
       }
 
+      // 组内排序
+      going.sort((a, b) => a.startDate - b.startDate);
+      finished.sort((a, b) => a.startDate - b.startDate);
+      expired.sort((a, b) => a.startDate - b.startDate);
+
       // 按顺序显示
       let group = [];
       if (expired.length) {
@@ -164,26 +163,49 @@ export default {
     // 对计划按照优先级分组
     sortPlanByLevel(plans) {
       // 分组
-      let going = [];
-      let expired = [];
+      let highLevel = [];
+      let mediumLevel = [];
+      let lowLevel = [];
+      let noneLevel = [];
       let finished = [];
       for (let plan of plans) {
-        if (plan.isExpired()) {
-          expired.push(plan);
-        } else if (plan.isFinished()) {
+        if (plan.isFinished()) {
           finished.push(plan);
-        } else if (plan.isGoing()) {
-          going.push(plan);
+        } else if (plan.level === "high") {
+          highLevel.push(plan);
+        } else if (plan.level === "medium") {
+          mediumLevel.push(plan);
+        } else if (plan.level === "low") {
+          lowLevel.push(plan);
+        } else {
+          noneLevel.push(plan);
         }
       }
 
+      // 组内排序
+      highLevel.sort((a, b) => a.startDate - b.startDate);
+      mediumLevel.sort((a, b) => a.startDate - b.startDate);
+      lowLevel.sort((a, b) => a.startDate - b.startDate);
+      noneLevel.sort((a, b) => a.startDate - b.startDate);
+      finished.sort((a, b) => a.startDate - b.startDate);
+
       // 按顺序显示
       let group = [];
-      if (expired.length) {
-        group.push({ options: expired, title: "已过期", key: "expired" });
+      if (highLevel.length) {
+        group.push({ options: highLevel, title: "高优先级", key: "highLevel" });
       }
-      if (going.length) {
-        group.push({ options: going, title: "进行中", key: "going" });
+      if (mediumLevel.length) {
+        group.push({
+          options: mediumLevel,
+          title: "中优先级",
+          key: "mediumLevel"
+        });
+      }
+      if (lowLevel.length) {
+        group.push({ options: lowLevel, title: "低优先级", key: "lowLevel" });
+      }
+      if (noneLevel.length) {
+        group.push({ options: noneLevel, title: "无优先级", key: "noneLevel" });
       }
       if (finished.length) {
         group.push({ options: finished, title: "已完成", key: "finished" });

@@ -8,24 +8,24 @@
           height: 'calc(100vh - 64px)'
         }"
       >
-        <plan />
+        <plan-list />
       </a-col>
       <a-col :span="12">
-        <Task />
+        <plan-detail />
       </a-col>
     </a-row>
   </div>
 </template>
 
 <script>
-import Plan from "@/components/Plan/Plan";
-import Task from "@/components/Plan/Task";
+import PlanList from "@/components/Plan/PlanList";
+import PlanDetail from "@/components/Plan/PlanDetail";
 
 export default {
   data() {
     return {};
   },
-  components: { Plan, Task }
+  components: { PlanList, PlanDetail }
 };
 </script>
 

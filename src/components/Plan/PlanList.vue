@@ -95,6 +95,7 @@ export default {
       obj.isDeleted = plan.isDeleted;
 
       // 附加属性
+      obj.startString = dateFormat("m月d日", new Date(obj.start));
       obj.endString = dateFormat("m月d日", new Date(obj.end));
       obj.startDate = new Date(obj.start); //开始时间
       obj.endDate = new Date(obj.end); //结束时间
