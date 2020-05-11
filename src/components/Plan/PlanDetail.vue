@@ -3,8 +3,15 @@
     <plan-tag :visible.sync="visibleTag" />
     <!-- 标题 -->
     <div class="plan-header">
-      <a-checkbox />
-      <span class="plan-header-label">{{ plan.title }}</span>
+      <a-checkbox class="plan-header-checkbox" />
+      <a-textarea
+        class="plan-header-label"
+        v-model="title"
+        :maxLength="30"
+        :autoSize="true"
+        @keydown.enter="handleTitleEnter"
+        @change="handleTitleChange"
+      />
       <!-- 右上角功能区 -->
       <div :style="{ float: 'right' }">
         <a-tooltip
@@ -15,12 +22,12 @@
           <a-avatar
             shape="square"
             :src="!plan.star ? starImage : unstarImage"
-            :size="18"
-            :style="{ marginRight: '15px' }"
+            :size="14"
+            class="plan-header-star"
             @click="handleStar"
           />
         </a-tooltip>
-        <a-button type="primary">保存</a-button>
+        <a-button type="primary" size="small">保存</a-button>
       </div>
     </div>
     <!-- 任务标签 -->
@@ -153,7 +160,10 @@ export default {
       emptyImage: publicPath + "images/" + "Knowledge.svg",
       visibleTag: false, //标签处理页是否可见
       checkedAllDay: false, //全天选择
-      description: "", //任务描述
+
+      // 任务属性
+      title: "",
+      description: "",
 
       // 日期选择
       timeTabKey: "1", //时间标签页的激活key
@@ -191,8 +201,24 @@ export default {
         this.$store.state.planDataFull = plans;
       });
     },
+    // 编辑标题，只有编辑完（type 是 change 而非 input），才更新数据
+    handleTitleChange(e) {
+      if (e.type === "change") {
+        console.log("标题保存：点击外部");
+        this.updatePlan({ title: this.title });
+      }
+    },
+    // 标题的回车事件，禁止回车，并且提交更新
+    handleTitleEnter(e) {
+      if (e.keyCode == 13) {
+        console.log("标题保存：回车");
+        e.returnValue = false; // 不返回值，也就是说不执行回车了
+        e.target.blur(); // 让 input 失去焦点，自动触发 change
+      }
+    },
     // 收藏/取消收藏
     handleStar() {
+      console.log(this.plan.star ? "取消收藏" : "收藏");
       this.updatePlan({ star: !this.plan.star });
     },
     disabledStartDate(startDate) {
@@ -228,20 +254,22 @@ export default {
     plan() {
       // 看看选中的计划是否在当前页，如果不在，则不显示
       let currentPlan = this.$store.state.currentPlan;
-      let currentPlans = this.$store.state.currentPlans;
-      let contain =
-        currentPlans.filter(plan => plan.id === currentPlan.id).length === 1;
+      let targets = this.$store.state.currentPlans.filter(
+        plan => plan.id === currentPlan.id
+      );
+      let target = targets.length === 1 ? targets[0] : {};
       console.log("5 在详情页成功获取到最新数据");
-      return contain ? currentPlan : {};
+      return Object.create(target); // 复制对象
     }
   },
   watch: {
     plan(to) {
       this.timeTabKey = to.allDay ? "1" : "2";
+
       this.checkedAllDay = to.allDay;
       this.description = to.description;
+      this.title = to.title;
     }
-    // this.$store.state.currentPlan;
   }
 };
 </script>
@@ -250,12 +278,6 @@ export default {
 .plan-page {
   text-align: left;
   padding: 15px;
-}
-
-.plan-header-label {
-  font-weight: bold;
-  font-size: 20px;
-  padding: 0 10px;
 }
 
 .plan-empty {
@@ -287,9 +309,35 @@ export default {
   margin: 10px 0;
 }
 
-/* .plan-time {
-  display: flex;
-} */
+.plan-header-checkbox {
+  float: left;
+}
+
+.plan-header-label {
+  font-weight: bold;
+  font-size: 16px;
+  display: -webkit-inline-box;
+  padding: 0 10px;
+  width: calc(100% - 130px);
+  margin-left: 10px;
+  border: none;
+  resize: none;
+}
+
+.plan-header-label:focus {
+  border-color: none;
+  border-right-width: none;
+  outline: 0;
+  box-shadow: none;
+}
+
+.plan-header-star {
+  margin: 0 15px 2px 0;
+}
+
+.plan-tags {
+  line-height: 2;
+}
 
 .plan-sub-plan-content {
   display: inline-block;
