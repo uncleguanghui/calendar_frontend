@@ -1,6 +1,5 @@
 <template>
   <div class="plan-page" v-if="plan.id">
-    <plan-tag :visible.sync="visibleTag" />
     <!-- 标题 -->
     <div class="plan-header">
       <a-checkbox class="plan-header-checkbox" />
@@ -30,18 +29,10 @@
         <a-button type="primary" size="small">保存</a-button>
       </div>
     </div>
-    <!-- 任务标签 -->
-    <div class="plan-tags">
+    <div class="plan-content">
+      <!-- 图标 -->
       <a-icon type="tags" class="taks-icon" />
-      <a-tag v-for="tag in plan.tags" :key="tag">
-        {{ tag }}
-      </a-tag>
-      <a-tag
-        style="background: #fff; borderStyle: dashed;"
-        @click="visibleTag = !visibleTag"
-      >
-        <a-icon type="plus" /> 添加标签
-      </a-tag>
+      <plan-tag :targetTags.sync="tagsWanted" :currentTags="[...plan.tags]" />
     </div>
     <!-- 任务时间 -->
     <div class="plan-time">
@@ -158,8 +149,9 @@ export default {
       starImage: publicPath + "icons/" + "收藏.png",
       unstarImage: publicPath + "icons/" + "未收藏.png",
       emptyImage: publicPath + "images/" + "Knowledge.svg",
-      visibleTag: false, //标签处理页是否可见
-      checkedAllDay: false, //全天选择
+      checkedAllDay: false, // 全天选择
+
+      tagsWanted: [], // 用户最终期望的标签
 
       // 任务属性
       title: "",
@@ -190,7 +182,7 @@ export default {
 
         if (target) {
           console.log("更新前", target);
-          console.log("更新内容", target);
+          console.log("更新内容", data);
           for (let key in data) {
             target[key] = res.data[key];
           }
@@ -264,11 +256,23 @@ export default {
   },
   watch: {
     plan(to) {
+      if (!to.id) {
+        return;
+      }
       this.timeTabKey = to.allDay ? "1" : "2";
 
       this.checkedAllDay = to.allDay;
       this.description = to.description;
       this.title = to.title;
+      this.tagsWanted = to.tags;
+    },
+    tagsWanted(to) {
+      let idOld = this.plan.tags.map(i => i.id);
+      let idNew = to.map(i => i.id);
+      // 如果前后标签不一样，则更新计划的标签值
+      if (idOld.sort().toString() !== idNew.sort().toString()) {
+        this.updatePlan({ tags: idNew });
+      }
     }
   }
 };
@@ -301,7 +305,6 @@ export default {
 
 .plan-description,
 .plan-position,
-.plan-tags,
 .plan-time,
 .plan-alarm,
 .plan-sub-plan,
@@ -335,10 +338,6 @@ export default {
   margin: 0 15px 2px 0;
 }
 
-.plan-tags {
-  line-height: 2;
-}
-
 .plan-sub-plan-content {
   display: inline-block;
   width: calc(100% - 40px);
@@ -353,5 +352,9 @@ export default {
 
 .plan-description-content:focus {
   border: 1px solid #40a9ff;
+}
+
+.plan-content {
+  display: -webkit-inline-box;
 }
 </style>

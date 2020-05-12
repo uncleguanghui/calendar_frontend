@@ -27,7 +27,9 @@ import {
   Checkbox,
   Tag,
   Tabs,
-  TimePicker
+  TimePicker,
+  Popover,
+  Popconfirm
 } from "ant-design-vue";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import axios from "axios";
@@ -66,6 +68,8 @@ Vue.use(Checkbox);
 Vue.use(Tag);
 Vue.use(Tabs);
 Vue.use(TimePicker);
+Vue.use(Popover);
+Vue.use(Popconfirm);
 
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);

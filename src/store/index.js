@@ -22,6 +22,7 @@ export default new Vuex.Store({
       },
       { key: "/plan/trash", icon: "delete", name: "已删除", hideNum: true }
     ], //计划侧边栏
+    planTags: {}, // 所有标签
     currentPlan: {}, // 当前计划
     currentPlans: [], // 当前展开的所有计划
     planDataFull: [], // 所有计划
