@@ -54,9 +54,7 @@
                 :style="{ background: tag.color }"
               ></div>
               <!-- 标签的选中状态 -->
-              <div
-                style="min-width: 30px; display: inline-block; padding-left: 10px"
-              >
+              <div class="check-status">
                 <a-icon type="check" v-if="tag.isChoosen" />
               </div>
             </div>
@@ -349,8 +347,11 @@ export default {
 .color-square {
   width: 20px;
   height: 20px;
-  display: inline-block;
+  float: left;
+  display: -webkit-inline-box;
   border-radius: 5px;
+  vertical-align: middle;
+  margin-top: 2px;
 }
 
 .close-square {
@@ -361,5 +362,13 @@ export default {
   z-index: 1;
   color: #fff;
   padding-right: 5px;
+}
+
+.check-status {
+  min-width: 30px;
+  display: -webkit-inline-box;
+  padding-left: 10px;
+  font-size: 12px;
+  vertical-align: middle;
 }
 </style>
