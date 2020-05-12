@@ -134,7 +134,7 @@ export default {
   data() {
     return {
       tagInput: "", // 标签 input 的输入值
-      newTagTitle: "", // 新创建的标签
+      newTagTitle: "", // 新创建的标签名称（用于展示 new 这几个字）
       tagsAll: [], // 该用户的所有标签
       tagDropdownVisible: false // 标签下拉框是否可见
     };
@@ -143,12 +143,10 @@ export default {
     // 每当传入的当前标签变化时，重置状态
     currentTags() {
       this.tagDropdownVisible = false;
-      this.reset();
     },
     // 每当下拉框重新出现的时候，重置状态
     tagDropdownVisible(to) {
       if (to) {
-        console.log("重置？？？？");
         this.reset();
       }
     }
@@ -243,7 +241,9 @@ export default {
         } else {
           console.log(`未找到目标计划: ${this.plan.id}`);
         }
-        this.tagsAll = tags.sort(this.tagSort).map(i => {
+
+        // 不重新排序，因为体验并不是特别好
+        this.tagsAll = tags.map(i => {
           i.initColor = i.color; // 原始颜色
           i.showPicker = false; // 关闭取色器
           i.isChoosen =
@@ -268,6 +268,10 @@ export default {
               i.showPicker = false;
               return i;
             });
+          // 当当前状态是打开时，在关闭前，保存一下颜色
+          if (target.showPicker && target.color != target.initColor) {
+            this.updateTag(target);
+          }
           //  展开或关闭取色器
           target.showPicker = !target.showPicker;
         } else {
