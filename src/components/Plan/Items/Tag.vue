@@ -11,7 +11,7 @@
     <!-- 标签管理 -->
     <a-dropdown :trigger="['click']" v-model="tagDropdownVisible">
       <!-- 添加标签 -->
-      <a-tag style="background: #fff; borderStyle: dashed;">
+      <a-tag style="background: #fff; borderStyle: dashed; transition: none">
         <a-icon type="plus" /> 添加标签
       </a-tag>
       <!-- 标签下拉框 slot -->
@@ -34,9 +34,14 @@
         </div>
         <!-- 选择标签 -->
         <a-row v-for="tag in renderTags" :key="tag.id">
-          <div class="tag-row" @click="e => updataTagChoosenStatus(e, tag)">
+          <div class="tag-row" @click="e => handleDivClick(e, tag)">
             <div class="tag-title">
-              <a-tag :color="tag.color">
+              <a-tag
+                :color="
+                  showPickerId === tag.id ? pickColor || tag.color : tag.color
+                "
+                style="transition: none"
+              >
                 {{ tag.title }}
               </a-tag>
               <!-- 新标签的符号 -->
@@ -51,19 +56,23 @@
               <!-- 关联取色器 -->
               <div
                 class="color-square"
-                :style="{ background: tag.color }"
+                :style="{
+                  background:
+                    showPickerId === tag.id ? pickColor || tag.color : tag.color
+                }"
               ></div>
               <!-- 标签的选中状态 -->
               <div class="check-status">
-                <a-icon type="check" v-if="tag.isChoosen" />
+                <a-icon
+                  type="check"
+                  v-if="choosenIdList.indexOf(tag.id) > -1"
+                />
               </div>
             </div>
           </div>
+          <!-- 取色器 -->
           <div
-            v-if="
-              tagsAll.length &&
-                tagsAll.filter(i => i.id === tag.id)[0].showPicker
-            "
+            v-if="showPickerId === tag.id"
             style="max-width: 100%; padding: 10px;"
           >
             <div class="close-square">
@@ -108,10 +117,6 @@ export default {
   props: {
     value: Array
   },
-  mounted() {
-    // 第一次时获取最新标签
-    this.getTags();
-  },
   computed: {
     // 下拉列表中要渲染的标签
     renderTags() {
@@ -120,13 +125,19 @@ export default {
           ? t.title.toLowerCase().indexOf(this.tagInput.toLowerCase()) > -1
           : true
       );
+    },
+    // 该用户的所有标签
+    tagsAll() {
+      return [...this.$store.state.planTags].sort(this.tagSort);
     }
   },
   data() {
     return {
       tagInput: "", // 标签 input 的输入值
       newTagTitle: "", // 新创建的标签名称（用于展示 new 这几个字）
-      tagsAll: [], // 该用户的所有标签
+      choosenIdList: [], // 当前选中的标签ID列表
+      showPickerId: "", // 要展开取色器的标签ID
+      pickColor: "", // 当前选中的颜色
       tagDropdownVisible: false // 标签下拉框是否可见
     };
   },
@@ -138,162 +149,70 @@ export default {
     // 每当下拉框重新出现的时候，重置状态
     tagDropdownVisible(to) {
       if (to) {
-        this.reset();
+        this.tagInput = "";
+        this.newTagTitle = "";
+        this.showPickerId = "";
+        this.pickColor = "";
+        this.choosenIdList = [...this.value].map(i => i.id);
       }
     }
   },
   methods: {
     // 标签排序，且将与输入相同的放在最前面
-    // firstTitle 是排序在前的
-    tagSort(a, b, firstTitle = "") {
-      if (a.title === b.title) {
-        return 0;
-      } else if (a.title === firstTitle) {
-        return -1;
-      } else if (b.title === firstTitle) {
-        return 1;
-      } else {
-        return a.title.localeCompare(b.title);
-      }
-    },
-    reset() {
-      console.log("重置");
-      this.tagInput = "";
-      this.newTagTitle = "";
-      this.tagsAll = this.tagsAll.map(i => {
-        i.showPicker = false; // 关闭取色器
-        i.isChoosen = this.value.filter(t => t.id === i.id).length === 1; // 更新选中状态
-        return i;
-      });
+    tagSort(a, b) {
+      return a.title.localeCompare(b.title);
     },
     // 创建标签
     createTag() {
-      this.$request({
-        url: `/api/tags`,
-        method: "post",
-        data: {
-          title: this.tagInput,
-          color: "#40a9ff" // 默认蓝色
-        }
-      }).then(res => {
-        // 更新标签
-        this.tagsAll = res.data.sort(this.tagSort).map(i => {
-          i.initColor = i.color; // 原始颜色
-          i.showPicker = false; // 关闭取色器
-          i.isChoosen = this.value.filter(t => t.id === i.id).length === 1; // 更新选中状态
-          return i;
-        });
-        this.$store.state.planTags = this.tagsAll;
-        // 记录上一次的输入值，并清除本次输入值
-        this.newTagTitle = this.tagInput;
-        this.tagInput = "";
-        console.log("创建一个新标签");
-      });
+      this.$store.dispatch("createTag", this.tagInput);
+      // 记录上一次的输入值，并清除本次输入值
+      this.newTagTitle = this.tagInput;
+      this.tagInput = "";
     },
-    // 获取所有标签
-    getTags() {
-      this.$request({
-        url: `/api/tags`,
-        method: "get"
-      }).then(res => {
-        this.tagsAll = res.data.sort(this.tagSort).map(i => {
-          i.initColor = i.color; // 原始颜色
-          i.showPicker = false; // 关闭取色器
-          i.isChoosen = this.value.filter(t => t.id === i.id).length === 1; // 更新选中状态
-          return i;
-        });
-        this.$store.state.planTags = this.tagsAll;
-        console.log("获取最新标签");
-      });
-    },
-    // 更新标签
-    updateTag(tag) {
-      this.$request({
-        url: `/api/tags/${tag.id}`,
-        method: "put",
-        data: {
-          color: tag.color,
-          title: tag.title
-        }
-      }).then(res => {
-        // 更新列表里的数据
-        let tags = [...this.$store.state.planTags];
-        let targets = tags.filter(item => item.id === res.data.id);
-        let target = targets.length === 1 ? targets[0] : undefined;
-
-        if (target) {
-          console.log("更新前", target);
-          for (let key in res.data) {
-            target[key] = res.data[key];
-          }
-          console.log("更新后", target);
+    // 标签行的点击事件
+    handleDivClick(e, tag) {
+      if (e.target.className === "color-square") {
+        // 打开或关闭取色器
+        if (this.showPickerId === tag.id) {
+          this.closeColorPicker(tag);
         } else {
-          console.log(`未找到目标计划: ${this.plan.id}`);
+          this.showPickerId = tag.id;
         }
-
-        // 不重新排序，因为体验并不是特别好
-        this.tagsAll = tags.map(i => {
-          i.initColor = i.color; // 原始颜色
-          i.showPicker = false; // 关闭取色器
-          i.isChoosen = this.value.filter(t => t.id === i.id).length === 1; // 更新选中状态
-          return i;
-        });
-        this.$store.state.planTags = this.tagsAll;
-        console.log("获取更新后的标签");
-      });
-    },
-    // 打开取色器，或者更新某个标签的选中状态
-    updataTagChoosenStatus(e, tag) {
-      let tags = [...this.tagsAll];
-      let targets = tags.filter(t => t.id === tag.id);
-      let target = targets.length === 1 ? targets[0] : undefined;
-      if (target) {
-        if (e.target.className === "color-square") {
-          // 关闭其他标签的取色器
-          tags
-            .filter(t => t.id !== tag.id)
-            .map(i => {
-              i.showPicker = false;
-              return i;
-            });
-          // 当当前状态是打开时，在关闭前，保存一下颜色
-          if (target.showPicker && target.color != target.initColor) {
-            this.updateTag(target);
-          }
-          //  展开或关闭取色器
-          target.showPicker = !target.showPicker;
+      } else {
+        // 更新标签的选中状态
+        let index = this.choosenIdList.indexOf(tag.id);
+        if (index > -1) {
+          this.choosenIdList.splice(index, 1);
         } else {
-          target.isChoosen = !target.isChoosen; // 更新选中状态
+          this.choosenIdList.push(tag.id);
         }
-        this.tagsAll = tags;
       }
     },
     handleUpdateTags() {
       this.tagDropdownVisible = false;
-      this.$emit("input", [...this.tagsAll.filter(i => i.isChoosen)]);
+      this.$emit(
+        "input",
+        this.tagsAll.filter(i => this.choosenIdList.indexOf(i.id) > -1)
+      );
     },
     // 更新颜色（该操作会变得非常频繁，因此只更新本地的颜色，并不更新到 Vuex 和后端）
     updateColor({ hex8 }, tag) {
-      let tags = [...this.tagsAll];
-      let targets = tags.filter(t => t.id === tag.id);
-      let target = targets.length === 1 ? targets[0] : undefined;
-      if (target) {
-        target.color = hex8;
-        this.tagsAll = tags;
-      }
+      this.showPickerId = tag.id;
+      this.pickColor = hex8;
     },
     // 隐藏取色器，并保存颜色
     closeColorPicker(tag) {
-      let tags = [...this.tagsAll];
-      let targets = tags.filter(t => t.id === tag.id);
-      let target = targets.length === 1 ? targets[0] : undefined;
-      if (target) {
-        target.showPicker = false;
-        // 当颜色发生变化时，更新服务器颜色
-        if (target.color != target.initColor) {
-          this.updateTag(target);
-        }
+      if (tag.color != this.pickColor) {
+        // 当当前状态是打开时，在关闭前，保存一下颜色
+        let newTag = {
+          id: tag.id,
+          title: tag.title,
+          color: this.pickColor
+        };
+        this.$store.dispatch("updateTag", newTag);
       }
+      this.showPickerId = "";
+      this.pickColor = "";
     }
   }
 };

@@ -1,5 +1,6 @@
 import Vue from "vue";
 import Vuex from "vuex";
+import request from "@/utils/request";
 
 Vue.use(Vuex);
 
@@ -22,7 +23,7 @@ export default new Vuex.Store({
       },
       { key: "/plan/trash", icon: "delete", name: "已删除", hideNum: true }
     ], //计划侧边栏
-    planTags: {}, // 所有标签
+    planTags: [], // 所有标签
     currentPlan: {}, // 当前计划
     currentPlans: [], // 当前展开的所有计划
     planDataFull: [], // 所有计划
@@ -148,7 +149,72 @@ export default new Vuex.Store({
      * **/
     westFestival: { "05-20": "母亲节", "06-30": "父亲节", "11-44": "感恩节" }
   },
-  mutations: {},
-  actions: {},
+  mutations: {
+    // 获取所有标签
+    GETTAGS(state) {
+      return request({
+        url: `/api/tags`,
+        method: "get"
+      }).then(res => {
+        state.planTags = res.data;
+        console.log("获取最新标签");
+      });
+    },
+    // 创建一个标签
+    CREATETAG(state, title) {
+      return request({
+        url: `/api/tags`,
+        method: "post",
+        data: {
+          title: title,
+          color: "#40a9ff" // 默认蓝色
+        }
+      }).then(res => {
+        // 更新标签
+        state.planTags = res.data;
+        console.log("创建一个新标签");
+      });
+    },
+    // 更新一个标签
+    UPDATETAG(state, tag) {
+      return request({
+        url: `/api/tags/${tag.id}`,
+        method: "put",
+        data: {
+          title: tag.title,
+          color: tag.color
+        }
+      }).then(res => {
+        // 更新列表里的数据
+        let tags = [...state.planTags];
+        let targets = tags.filter(item => item.id === res.data.id);
+        let target = targets.length === 1 ? targets[0] : undefined;
+
+        if (target) {
+          console.log("更新前", target);
+          for (let key in res.data) {
+            target[key] = res.data[key];
+          }
+          console.log("更新后", target);
+        } else {
+          console.log(`未找到目标计划: ${this.plan.id}`);
+        }
+
+        state.planTags = tags;
+        console.log("更新一个新标签");
+      });
+    }
+  },
+  actions: {
+    getTags({ commit }) {
+      commit("GETTAGS");
+    },
+    createTag({ commit }, title) {
+      commit("CREATETAG", title);
+    },
+    updateTag({ commit }, tag) {
+      commit("UPDATETAG", tag);
+    }
+  },
   modules: {}
 });
