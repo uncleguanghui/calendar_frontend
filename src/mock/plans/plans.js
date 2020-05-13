@@ -9,15 +9,19 @@ let monthMS = dayMS * 30; //一个月的毫秒数
 let levels = ["high", "medium", "low", "none", null];
 
 // 创建标签
-let tags = [];
-for (let index = 0; index < 10; index++) {
-  let tag = {
-    id: Mock.mock("@id"), // 标签ID
-    title: Mock.mock("@ctitle(1, 10)"), // 标题，1~10字
-    color: Mock.mock("@color") // 背景色
-  };
-  tags.push(tag);
+function createTags() {
+  let tags_ = [];
+  for (let index = 0; index < 10; index++) {
+    let tag_ = {
+      id: Mock.mock("@id"), // 标签ID
+      title: Mock.mock("@ctitle(1, 10)"), // 标题，1~10字
+      color: Mock.mock("@color") // 背景色
+    };
+    tags_.push(tag_);
+  }
+  return tags_;
 }
+let tags = createTags();
 
 // 根据 id 找到标签对象，找不到则返回 undefined
 function getTagById(id) {
@@ -35,41 +39,65 @@ function randomDate(seed = 2020, bias = 0) {
   return new Date(time);
 }
 
-// 随机生成一个日期字符串对象
+// 随机生成一个日期字符串对象，或什么都没有
 function randomDateStringPair(seed) {
-  let start = randomDate(seed);
-  let end = randomDate(seed, Mock.mock(`@integer(1,${3 * dayMS})`));
-  return {
-    start: dateFormat("Y-mm-dd HH:MM:SS", start), //开始时间
-    end: dateFormat("Y-mm-dd HH:MM:SS", end) //结束时间
-  };
+  if (Mock.mock("@boolean")) {
+    let start = randomDate(seed);
+    let end = randomDate(seed, Mock.mock(`@integer(1,${3 * dayMS})`));
+    return {
+      start: dateFormat("Y-mm-dd HH:MM:SS", start), //开始时间
+      end: dateFormat("Y-mm-dd HH:MM:SS", end) //结束时间
+    };
+  } else {
+    return {
+      start: undefined,
+      end: undefined
+    };
+  }
+}
+
+// 创建子任务
+function createSubTasks() {
+  let tasks = [];
+  for (let index = 0; index < Mock.mock("@integer(0, 10)"); index++) {
+    tasks.push({
+      title: Mock.mock("@ctitle(1, 30)"), // 标题，1~50字
+      status: Mock.mock("@boolean") // 完成状态
+    });
+  }
+  return tasks;
 }
 
 // 创建计划
-let plans = [];
-for (let index = 0; index < Mock.mock("@integer(10, 30)"); index++) {
-  let time = randomDateStringPair(Mock.mock("@integer"));
-  let plan = {
-    id: Mock.mock("@id"), // 计划ID
-    groupId: Mock.mock("@id"), //计划书ID
-    title: Mock.mock("@ctitle(1, 30)"), // 标题，1~50字
-    star: Mock.mock("@boolean"), // 是否收藏，boolean
-    alarmStrategy: "买菜1",
-    typeId: "life",
-    status: Mock.mock("@integer(0,1)"), // 完成状态 : 1 - 已完成；0 - 未完成
-    allDay: Mock.mock("@boolean"), // 是否是全天的任务，boolean
-    isDeleted: Mock.mock("@boolean"), // 是否被删除
-    position: Mock.mock("@city"), // 国内随机城市
-    level: Mock.mock(`@pick(${levels})`), // 优先级
-    tags: Mock.Random.shuffle(tags).slice(
-      Mock.mock(`@integer(0,${tags.length})`)
-    ), // 计划标签，生成一个子集
-    backgroundColor: Mock.mock("@color"), // 背景色
-    description: Mock.mock("@cparagraph(1, 20)"), // 计划描述，1~20段
-    attachments: Mock.mock({ "image|0-3": ["@image"] }).image // 附件——图片，0~3张
-  };
-  plans.push(Object.assign(plan, time));
+function createPlans() {
+  let plans_ = [];
+  for (let index = 0; index < Mock.mock("@integer(10, 30)"); index++) {
+    let time_ = randomDateStringPair(Mock.mock("@integer"));
+    let plan_ = {
+      id: Mock.mock("@id"), // 计划ID
+      groupId: Mock.mock("@id"), //计划书ID
+      title: Mock.mock("@ctitle(1, 30)"), // 标题，1~50字
+      star: Mock.mock("@boolean"), // 是否收藏，boolean
+      alarmStrategy: "买菜1",
+      typeId: "life",
+      status: Mock.mock("@integer(0,1)"), // 完成状态 : 1 - 已完成；0 - 未完成
+      allDay: Mock.mock("@boolean"), // 是否是全天的任务，boolean
+      isDeleted: Mock.mock("@boolean"), // 是否被删除
+      position: Mock.mock("@city"), // 国内随机城市
+      level: Mock.mock(`@pick(${levels})`), // 优先级
+      subTasks: createSubTasks(), // 子任务
+      tags: Mock.Random.shuffle(tags).slice(
+        Mock.mock(`@integer(0,${tags.length})`)
+      ), // 计划标签，生成一个子集
+      backgroundColor: Mock.mock("@color"), // 背景色
+      description: Mock.mock("@cparagraph(1, 20)"), // 计划描述，1~20段
+      attachments: Mock.mock({ "image|0-3": ["@image"] }).image // 附件——图片，0~3张
+    };
+    plans_.push(Object.assign(plan_, time_));
+  }
+  return plans_;
 }
+let plans = createPlans();
 
 // 添加一个计划
 function addPlan(planObj) {

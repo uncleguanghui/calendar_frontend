@@ -88,6 +88,7 @@ process.env.VUE_APP_MOCK && require("./mock/index.js");
 // 允许在控制台使用函数，方便调试
 window.chineseLunar = require("chinese-lunar");
 window.Mock = require("mockjs");
+window.moment = moment;
 
 new Vue({
   router,

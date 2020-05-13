@@ -1,8 +1,8 @@
 <template>
-  <div style="line-height: 2;">
+  <div>
     <!-- 当前标签 -->
     <a-tag
-      v-for="tg in [...currentTags].sort(tagSort)"
+      v-for="tg in [...value].sort(tagSort)"
       :key="tg.key"
       :color="tg.color"
     >
@@ -106,14 +106,7 @@ export default {
     "chrome-picker": VueColor.Chrome
   },
   props: {
-    currentTags: {
-      require: true,
-      type: Array
-    },
-    targetTags: {
-      require: true,
-      type: Array
-    }
+    value: Array
   },
   mounted() {
     // 第一次时获取最新标签
@@ -139,7 +132,7 @@ export default {
   },
   watch: {
     // 每当传入的当前标签变化时，重置状态
-    currentTags() {
+    value() {
       this.tagDropdownVisible = false;
     },
     // 每当下拉框重新出现的时候，重置状态
@@ -169,7 +162,7 @@ export default {
       this.newTagTitle = "";
       this.tagsAll = this.tagsAll.map(i => {
         i.showPicker = false; // 关闭取色器
-        i.isChoosen = this.currentTags.filter(t => t.id === i.id).length === 1; // 更新选中状态
+        i.isChoosen = this.value.filter(t => t.id === i.id).length === 1; // 更新选中状态
         return i;
       });
     },
@@ -187,8 +180,7 @@ export default {
         this.tagsAll = res.data.sort(this.tagSort).map(i => {
           i.initColor = i.color; // 原始颜色
           i.showPicker = false; // 关闭取色器
-          i.isChoosen =
-            this.currentTags.filter(t => t.id === i.id).length === 1; // 更新选中状态
+          i.isChoosen = this.value.filter(t => t.id === i.id).length === 1; // 更新选中状态
           return i;
         });
         this.$store.state.planTags = this.tagsAll;
@@ -207,8 +199,7 @@ export default {
         this.tagsAll = res.data.sort(this.tagSort).map(i => {
           i.initColor = i.color; // 原始颜色
           i.showPicker = false; // 关闭取色器
-          i.isChoosen =
-            this.currentTags.filter(t => t.id === i.id).length === 1; // 更新选中状态
+          i.isChoosen = this.value.filter(t => t.id === i.id).length === 1; // 更新选中状态
           return i;
         });
         this.$store.state.planTags = this.tagsAll;
@@ -244,8 +235,7 @@ export default {
         this.tagsAll = tags.map(i => {
           i.initColor = i.color; // 原始颜色
           i.showPicker = false; // 关闭取色器
-          i.isChoosen =
-            this.currentTags.filter(t => t.id === i.id).length === 1; // 更新选中状态
+          i.isChoosen = this.value.filter(t => t.id === i.id).length === 1; // 更新选中状态
           return i;
         });
         this.$store.state.planTags = this.tagsAll;
@@ -280,9 +270,7 @@ export default {
     },
     handleUpdateTags() {
       this.tagDropdownVisible = false;
-      this.$emit("update:targetTags", [
-        ...this.tagsAll.filter(i => i.isChoosen)
-      ]);
+      this.$emit("input", [...this.tagsAll.filter(i => i.isChoosen)]);
     },
     // 更新颜色（该操作会变得非常频繁，因此只更新本地的颜色，并不更新到 Vuex 和后端）
     updateColor({ hex8 }, tag) {

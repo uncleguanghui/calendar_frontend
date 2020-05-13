@@ -21,6 +21,7 @@ export default function(plan) {
   obj.start = plan.start;
   obj.end = plan.end;
   obj.isDeleted = plan.isDeleted;
+  obj.subTasks = plan.subTasks;
 
   // 附加属性
   obj.startString = dateFormat("m月d日", new Date(obj.start));

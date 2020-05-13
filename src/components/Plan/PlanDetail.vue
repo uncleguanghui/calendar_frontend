@@ -1,16 +1,11 @@
 <template>
   <div class="plan-page" v-if="plan.id">
     <!-- 标题 -->
-    <div class="plan-header">
+    <div class="plan-content">
       <a-checkbox class="plan-header-checkbox" />
-      <a-textarea
-        class="plan-header-label"
-        v-model="title"
-        :maxLength="30"
-        :autoSize="true"
-        @keydown.enter="handleTitleEnter"
-        @change="handleTitleChange"
-      />
+      <div style="width:calc(100% - 100px)">
+        <plan-title v-model="title" />
+      </div>
       <!-- 右上角功能区 -->
       <div :style="{ float: 'right' }">
         <a-tooltip
@@ -32,103 +27,34 @@
     <div class="plan-content">
       <!-- 图标 -->
       <a-icon type="tags" class="taks-icon" />
-      <plan-tag :targetTags.sync="tagsWanted" :currentTags="[...plan.tags]" />
+      <plan-tag v-model="tags" />
     </div>
     <!-- 任务时间 -->
-    <div class="plan-time">
+    <div class="plan-content">
       <a-icon type="clock-circle" class="taks-icon" />
-      <a-checkbox v-model="checkedAllDay">全天</a-checkbox>
-      <div :style="{ paddingLeft: '24px' }">
-        <div :style="{ paddingBottom: '5px' }">
-          <span :style="{ paddingRight: '10px', verticalAlign: 'bottom' }">
-            开始
-          </span>
-          <a-date-picker
-            v-model="startDate"
-            size="small"
-            :disabled-date="disabledStartDate"
-            :style="{
-              width: '100px',
-              verticalAlign: 'bottom'
-            }"
-            format="MM-DD"
-            placeholder="开始"
-            @openChange="handleStartOpenChange"
-          />
-          <a-time-picker
-            v-if="!checkedAllDay"
-            :style="{
-              width: '120px',
-              verticalAlign: 'bottom',
-              paddingLeft: '10px'
-            }"
-            size="small"
-            use12-hours
-            format="h:mm a"
-            @change="handleStartTimeChange"
-            v-model="startTime"
-          />
-        </div>
-        <div>
-          <span :style="{ paddingRight: '10px', verticalAlign: 'bottom' }">
-            结束
-          </span>
-          <a-date-picker
-            v-model="endDate"
-            size="small"
-            :disabled-date="disabledEndDate"
-            :style="{ width: '100px', verticalAlign: 'bottom' }"
-            format="MM-DD"
-            placeholder="结束"
-            :open="endOpen"
-            @openChange="handleEndOpenChange"
-          />
-          <a-time-picker
-            v-if="!checkedAllDay"
-            :style="{
-              width: '120px',
-              verticalAlign: 'buttom',
-              paddingLeft: '10px'
-            }"
-            size="small"
-            use12-hours
-            format="h:mm a"
-            @change="handleEndTimeChange"
-            v-model="endTime"
-          />
-        </div>
-      </div>
+      <plan-time :start.sync="start" :end.sync="end" :checked.sync="checked" />
     </div>
     <!-- 提醒 -->
-    <div class="plan-alarm">
+    <div class="plan-content">
       <a-icon type="bell" class="taks-icon" />
-      <span>提醒策略：{{ plan.alarmStrategy }}</span>
+      <plan-alarm v-model="alarm" />
     </div>
     <!-- 地点 -->
-    <div class="plan-position">
+    <div class="plan-content">
       <a-icon type="environment" class="taks-icon" />
-      <span>地址：{{ plan.position }}</span>
+      <plan-position v-model="position" />
     </div>
     <!-- 子任务 -->
-    <div class="plan-sub-plan">
+    <div class="plan-content">
       <a-icon type="ordered-list" class="taks-icon" />
-      <div class="plan-sub-plan-content">
-        子任务列表
-      </div>
+      <plan-sub-tasks v-model="subTasks" />
     </div>
     <!-- 描述 -->
-    <div class="plan-description">
+    <div class="plan-content">
       <a-icon type="file-text" class="taks-icon" />
-      <a-textarea
-        placeholder="添加任务描述"
-        :rows="10"
-        v-model="description"
-        class="plan-description-content"
-        :autoSize="{
-          minRows: 8,
-          maxRows: 18
-        }"
-      />
+      <div style="width:calc(100% - 20px)">
+        <plan-description v-model="description" />
+      </div>
     </div>
   </div>
   <div v-else-if="$store.state.currentPlans.length > 0" class="plan-empty">
@@ -138,10 +64,24 @@
 </template>
 
 <script>
-import PlanTag from "./PlanTag";
+import PlanTag from "./Items/Tag";
+import PlanTime from "./Items/Time";
+import PlanAlarm from "./Items/Alarm";
+import PlanPosition from "./Items/Position";
+import PlanSubTasks from "./Items/SubTasks";
+import PlanDescription from "./Items/Description";
+import PlanTitle from "./Items/Title";
 
 export default {
-  components: { PlanTag },
+  components: {
+    PlanTag,
+    PlanTime,
+    PlanAlarm,
+    PlanPosition,
+    PlanSubTasks,
+    PlanDescription,
+    PlanTitle
+  },
   data() {
     const publicPath = process.env.BASE_URL;
     return {
@@ -149,22 +89,16 @@ export default {
       starImage: publicPath + "icons/" + "收藏.png",
       unstarImage: publicPath + "icons/" + "未收藏.png",
       emptyImage: publicPath + "images/" + "Knowledge.svg",
-      checkedAllDay: false, // 全天选择
 
-      tagsWanted: [], // 用户最终期望的标签
-
-      // 任务属性
-      title: "",
-      description: "",
-
-      // 日期选择
-      timeTabKey: "1", //时间标签页的激活key
-      startDate: this.$moment(new Date()),
-      endDate: this.$moment(new Date()),
-      endOpen: false,
-      // 时间选择
-      startTime: this.$moment(new Date()),
-      endTime: this.$moment(new Date())
+      title: "", // 用户最终期望的标题
+      start: "", // 用户最终期望的开始时间
+      end: "", // 用户最终期望的结束时间
+      checked: "", // 用户最终期望的全天
+      tags: [], // 用户最终期望的标签
+      alarm: "", // 用户最终期望的提醒
+      position: "", // 用户最终期望的位置
+      subTasks: "", // 用户最终期望的子任务
+      description: "" // 用户最终期望的描述
     };
   },
   methods: {
@@ -193,53 +127,10 @@ export default {
         this.$store.state.planDataFull = plans;
       });
     },
-    // 编辑标题，只有编辑完（type 是 change 而非 input），才更新数据
-    handleTitleChange(e) {
-      if (e.type === "change") {
-        console.log("标题保存：点击外部");
-        this.updatePlan({ title: this.title });
-      }
-    },
-    // 标题的回车事件，禁止回车，并且提交更新
-    handleTitleEnter(e) {
-      if (e.keyCode == 13) {
-        console.log("标题保存：回车");
-        e.returnValue = false; // 不返回值，也就是说不执行回车了
-        e.target.blur(); // 让 input 失去焦点，自动触发 change
-      }
-    },
     // 收藏/取消收藏
     handleStar() {
       console.log(this.plan.star ? "取消收藏" : "收藏");
       this.updatePlan({ star: !this.plan.star });
-    },
-    disabledStartDate(startDate) {
-      const endDate = this.endDate;
-      if (!startDate || !endDate) {
-        return false;
-      }
-      return startDate.valueOf() > endDate.valueOf();
-    },
-    disabledEndDate(endDate) {
-      const startDate = this.startDate;
-      if (!endDate || !startDate) {
-        return false;
-      }
-      return startDate.valueOf() >= endDate.valueOf();
-    },
-    handleStartOpenChange(open) {
-      if (!open) {
-        this.endOpen = true;
-      }
-    },
-    handleEndOpenChange(open) {
-      this.endOpen = open;
-    },
-    handleStartTimeChange(time) {
-      this.startTime = time;
-    },
-    handleEndTimeChange(time) {
-      this.endTime = time;
     }
   },
   computed: {
@@ -259,19 +150,29 @@ export default {
       if (!to.id) {
         return;
       }
-      this.timeTabKey = to.allDay ? "1" : "2";
+      console.log("6 计划数据发生了变化，重新赋值");
 
-      this.checkedAllDay = to.allDay;
-      this.description = to.description;
       this.title = to.title;
-      this.tagsWanted = to.tags;
+      this.start = to.start;
+      this.end = to.end;
+      this.checke = to.checkedAllDay;
+      this.tags = to.tags;
+      this.alarm = to.alarmStrategy;
+      this.position = to.position;
+      this.subTasks = to.subTasks;
+      this.description = to.description;
     },
-    tagsWanted(to) {
+    tags(to) {
       let idOld = this.plan.tags.map(i => i.id);
       let idNew = to.map(i => i.id);
-      // 如果前后标签不一样，则更新计划的标签值
       if (idOld.sort().toString() !== idNew.sort().toString()) {
         this.updatePlan({ tags: idNew });
+      }
+    },
+    title(to) {
+      if (this.plan.title !== to) {
+        console.log("标题数据发生了变化，推送到后端");
+        this.updatePlan({ title: to });
       }
     }
   }
@@ -303,58 +204,17 @@ export default {
   padding-right: 10px;
 }
 
-.plan-description,
-.plan-position,
-.plan-time,
-.plan-alarm,
-.plan-sub-plan,
-.plan-header {
-  margin: 10px 0;
-}
-
 .plan-header-checkbox {
   float: left;
-}
-
-.plan-header-label {
-  font-weight: bold;
-  font-size: 16px;
-  display: -webkit-inline-box;
-  padding: 0 10px;
-  width: calc(100% - 130px);
-  margin-left: 10px;
-  border: none;
-  resize: none;
-}
-
-.plan-header-label:focus {
-  border-color: none;
-  border-right-width: none;
-  outline: 0;
-  box-shadow: none;
 }
 
 .plan-header-star {
   margin: 0 15px 2px 0;
 }
 
-.plan-sub-plan-content {
-  display: inline-block;
-  width: calc(100% - 40px);
-}
-
-.plan-description-content {
-  width: calc(100% - 40px);
-  vertical-align: top;
-  border: none;
-  padding: 0;
-}
-
-.plan-description-content:focus {
-  border: 1px solid #40a9ff;
-}
-
 .plan-content {
-  display: -webkit-inline-box;
+  display: -webkit-box;
+  line-height: 2;
+  margin: 10px 0;
 }
 </style>
