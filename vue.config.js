@@ -11,7 +11,10 @@ module.exports = {
     }
   },
   configureWebpack: {
-    devtool: "source-map"
+    devtool: "source-map",
+    externals: {
+      AMap: "AMap"
+    }
   },
   devServer: {
     before(app) {

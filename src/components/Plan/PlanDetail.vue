@@ -174,6 +174,12 @@ export default {
         console.log("标题数据发生了变化，推送到后端");
         this.updatePlan({ title: to });
       }
+    },
+    position(to) {
+      if (this.plan.position !== to) {
+        console.log("地址数据发生了变化，推送到后端");
+        this.updatePlan({ position: to });
+      }
     }
   }
 };
