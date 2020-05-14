@@ -3,6 +3,7 @@
     placeholder="添加任务描述"
     :rows="10"
     v-model="description"
+    @change="emitInput"
     class="plan-description-content"
     :autoSize="{
       minRows: 8,
@@ -12,6 +13,8 @@
 </template>
 
 <script>
+import lodash from "lodash";
+
 export default {
   props: {
     value: String
@@ -25,6 +28,13 @@ export default {
     value(to) {
       this.description = to;
     }
+  },
+  methods: {
+    // 防抖地向后台提交数据更新
+    emitInput: lodash.debounce(function() {
+      console.log("防抖5秒，更新任务描述数据");
+      this.$emit("input", this.description);
+    }, 5000)
   }
 };
 </script>
@@ -40,6 +50,8 @@ export default {
 }
 
 .plan-description-content:focus {
-  border: 1px solid #40a9ff;
+  border: none;
+  box-shadow: none;
+  background: #40a9ff24;
 }
 </style>

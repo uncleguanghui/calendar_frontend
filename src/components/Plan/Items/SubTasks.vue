@@ -81,9 +81,9 @@ export default {
   methods: {
     // 防抖地向后台提交数据更新
     emitInput: lodash.debounce(function() {
-      console.log("防抖10秒，更新子任务数据");
+      console.log("防抖5秒，更新子任务数据");
       this.$emit("input", this.subTasks);
-    }, 10000),
+    }, 5000),
     /*
     对任务列表进行重排序：
     * 未完成的在前面，按照 index 从小到大排

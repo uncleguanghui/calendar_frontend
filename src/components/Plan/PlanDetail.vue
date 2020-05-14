@@ -199,6 +199,12 @@ export default {
         console.log("子任务数据发生了变化，推送到后端");
         this.updatePlan({ subTasks: to });
       }
+    },
+    description(to) {
+      if (this.plan.description !== to) {
+        console.log("描述数据发生了变化，推送到后端");
+        this.updatePlan({ description: to });
+      }
     }
   }
 };

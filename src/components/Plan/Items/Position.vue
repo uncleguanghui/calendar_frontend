@@ -1,18 +1,18 @@
 <template>
   <a-auto-complete
     size="small"
-    :value="position"
+    v-model="position"
     :data-source="addressList"
     class="position-input"
     placeholder=""
     @search="onSearch"
-    @change="onChange"
-    @blur="handleBlur"
+    @change="emitInput"
   />
 </template>
 
 <script>
 import AMap from "AMap";
+import lodash from "lodash";
 
 export default {
   props: {
@@ -35,24 +35,19 @@ export default {
     };
   },
   methods: {
+    // 防抖地向后台提交数据更新
+    emitInput: lodash.debounce(function() {
+      console.log("防抖5秒，更新地址数据");
+      this.$emit("input", this.position);
+    }, 5000),
     // 处理高德返回的结果
     searchCallback(status, result) {
-      console.log(result.tips);
       this.addressList =
         status === "complete" ? result.tips.map(i => i.district + i.name) : [];
     },
     // 搜索地址
     onSearch(searchText) {
       this.autoComplete.search(searchText, this.searchCallback);
-    },
-    // 设置地址值
-    onChange(value) {
-      this.position = value;
-    },
-    // 编辑完成
-    handleBlur() {
-      console.log("地址编辑完成");
-      this.$emit("input", this.position);
     }
   }
 };
