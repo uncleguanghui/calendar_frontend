@@ -48,7 +48,7 @@
     <div class="detail-row">
       <a-icon type="ordered-list" class="taks-icon" />
       <div class="plan-content">
-        <plan-sub-tasks v-model="subTasks" v-if="refresh" />
+        <plan-sub-tasks v-model="subTasks" />
       </div>
     </div>
     <!-- 描述 -->
@@ -102,7 +102,7 @@ export default {
       tags: [], // 用户最终期望的标签
       alarm: "", // 用户最终期望的提醒
       position: "", // 用户最终期望的位置
-      subTasks: "", // 用户最终期望的子任务
+      subTasks: [], // 用户最终期望的子任务
       description: "" // 用户最终期望的描述
     };
   },
@@ -192,6 +192,12 @@ export default {
       if (this.plan.position !== to) {
         console.log("地址数据发生了变化，推送到后端");
         this.updatePlan({ position: to });
+      }
+    },
+    subTasks(to) {
+      if (this.plan.subTasks !== to) {
+        console.log("子任务数据发生了变化，推送到后端");
+        this.updatePlan({ subTasks: to });
       }
     }
   }
