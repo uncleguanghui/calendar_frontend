@@ -43,6 +43,8 @@
 </template>
 
 <script>
+import lodash from "lodash";
+
 let Mock = require("mockjs");
 
 export default {
@@ -77,6 +79,11 @@ export default {
     }
   },
   methods: {
+    // 防抖地向后台提交数据更新
+    emitInput: lodash.debounce(function() {
+      console.log("防抖10秒，更新子任务数据");
+      this.$emit("input", this.subTasks);
+    }, 10000),
     /*
     对任务列表进行重排序：
     * 未完成的在前面，按照 index 从小到大排
@@ -98,7 +105,7 @@ export default {
       }
       task.status = !task.status;
       this.subTasks = this.sortTasks(tasks);
-      this.$emit("input", this.subTasks);
+      this.emitInput();
     },
     /*
     键盘事件-删除键：
@@ -146,7 +153,7 @@ export default {
             return i;
           });
           this.subTasks = this.sortTasks(tasks);
-          this.$emit("input", this.subTasks);
+          this.emitInput();
 
           e.returnValue = false; // 不返回值，即不触发 change
           e.target.blur(); // 让 input 失去焦点
@@ -197,7 +204,7 @@ export default {
       }); // index 比 A 大的所有任务的 index += 1
       tasks = [...tasks, newTask]; // 加入任务 B
       this.subTasks = this.sortTasks(tasks);
-      this.$emit("input", this.subTasks);
+      this.emitInput();
 
       e.returnValue = false; // 不返回值，即不触发 change
       e.target.blur(); // 让 input 失去焦点
@@ -215,8 +222,8 @@ export default {
         return;
       }
       if (e.type === "change") {
-        console.log("提交变动");
-        this.$emit("input", this.subTasks);
+        console.log("数据发生变动");
+        this.emitInput();
       } else if (e.type === "input") {
         task.title = e.target.value;
         this.subTasks = this.sortTasks(tasks); // 还在编辑，就不推送了
@@ -264,7 +271,7 @@ export default {
         return i;
       });
       this.subTasks = this.sortTasks(tasks);
-      this.$emit("input", this.subTasks);
+      this.emitInput();
       console.log("删除事件场景2处理完毕");
     }
   }
