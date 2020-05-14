@@ -25,8 +25,15 @@
               />
               {{ plan.title }}
             </span>
-            <!-- 右上角日期 -->
+            <!-- 右上角 -->
             <div class="checkbox-right">
+              <!-- 子任务的符号 -->
+              <a-icon
+                type="ordered-list"
+                v-if="plan.subTasks.length > 0"
+                style="padding-right: '20px'"
+              />
+              <!-- 开始日期 -->
               <span :style="{ color: plan.isExpired() ? '#ff4d4f' : '' }">
                 {{ plan.startString }}
               </span>

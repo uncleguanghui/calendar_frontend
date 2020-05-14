@@ -56,14 +56,18 @@ function randomDateStringPair(seed) {
   }
 }
 
-// 创建子任务
+// 创建子任务，或者没有子任务
 function createSubTasks() {
   let tasks = [];
-  for (let index = 0; index < Mock.mock("@integer(0, 10)"); index++) {
-    tasks.push({
-      title: Mock.mock("@ctitle(1, 30)"), // 标题，1~50字
-      status: Mock.mock("@boolean") // 完成状态
-    });
+  if (Mock.mock("@boolean")) {
+    for (let index = 0; index < Mock.mock("@integer(5, 10)"); index++) {
+      tasks.push({
+        key: Mock.mock("@id"),
+        index: index, // 任务的序号
+        title: Mock.mock("@ctitle(1, 30)"), // 标题，1~50字
+        status: Mock.mock("@boolean") // 完成状态
+      });
+    }
   }
   return tasks;
 }

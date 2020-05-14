@@ -1,7 +1,7 @@
 <template>
   <div class="plan-page" v-if="plan.id">
     <!-- 标题 -->
-    <div class="plan-content">
+    <div class="detail-row">
       <a-checkbox class="plan-header-checkbox" />
       <div style="width:calc(100% - 100px)">
         <plan-title v-model="title" />
@@ -24,35 +24,37 @@
         <a-button type="primary" size="small">保存</a-button>
       </div>
     </div>
-    <div class="plan-content">
+    <div class="detail-row">
       <!-- 图标 -->
       <a-icon type="tags" class="taks-icon" />
-      <plan-tag v-model="tags" />
+      <plan-tag v-model="tags" v-if="refresh" />
     </div>
     <!-- 任务时间 -->
-    <div class="plan-content">
+    <div class="detail-row">
       <a-icon type="clock-circle" class="taks-icon" />
       <plan-time :start.sync="start" :end.sync="end" :checked.sync="checked" />
     </div>
     <!-- 提醒 -->
-    <div class="plan-content">
+    <div class="detail-row">
       <a-icon type="bell" class="taks-icon" />
       <plan-alarm v-model="alarm" />
     </div>
     <!-- 地点 -->
-    <div class="plan-content">
+    <div class="detail-row">
       <a-icon type="environment" class="taks-icon" />
       <plan-position v-model="position" />
     </div>
     <!-- 子任务 -->
-    <div class="plan-content">
+    <div class="detail-row">
       <a-icon type="ordered-list" class="taks-icon" />
-      <plan-sub-tasks v-model="subTasks" />
+      <div class="plan-content">
+        <plan-sub-tasks v-model="subTasks" v-if="refresh" />
+      </div>
     </div>
     <!-- 描述 -->
-    <div class="plan-content">
+    <div class="detail-row">
       <a-icon type="file-text" class="taks-icon" />
-      <div style="width:calc(100% - 20px)">
+      <div class="plan-content">
         <plan-description v-model="description" />
       </div>
     </div>
@@ -64,6 +66,8 @@
 </template>
 
 <script>
+import { mapActions } from "vuex";
+
 import PlanTag from "./Items/Tag";
 import PlanTime from "./Items/Time";
 import PlanAlarm from "./Items/Alarm";
@@ -89,6 +93,7 @@ export default {
       starImage: publicPath + "icons/" + "收藏.png",
       unstarImage: publicPath + "icons/" + "未收藏.png",
       emptyImage: publicPath + "images/" + "Knowledge.svg",
+      refresh: true,
 
       title: "", // 用户最终期望的标题
       start: "", // 用户最终期望的开始时间
@@ -131,7 +136,11 @@ export default {
     handleStar() {
       console.log(this.plan.star ? "取消收藏" : "收藏");
       this.updatePlan({ star: !this.plan.star });
-    }
+    },
+    ...mapActions(["getTags"])
+  },
+  mounted() {
+    this.getTags();
   },
   computed: {
     plan() {
@@ -151,6 +160,10 @@ export default {
         return;
       }
       console.log("6 计划数据发生了变化，重新赋值");
+      this.refresh = false;
+      this.$nextTick(() => {
+        this.refresh = true;
+      });
 
       this.title = to.title;
       this.start = to.start;
@@ -218,9 +231,13 @@ export default {
   margin: 0 15px 2px 0;
 }
 
-.plan-content {
+.detail-row {
   display: -webkit-box;
   line-height: 2;
   margin: 10px 0;
+}
+
+.plan-content {
+  width: calc(100% - 20px);
 }
 </style>
