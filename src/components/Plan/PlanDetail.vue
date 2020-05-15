@@ -14,7 +14,9 @@
         </div>
         <!-- 右上角功能区 -->
         <div :style="{ float: 'right' }">
+          <!-- 修改优先级 -->
           <plan-level v-model="level" class="plan-header-operation" />
+          <!-- 收藏 -->
           <a-tooltip
             :title="!plan.star ? '点击收藏' : '点击取消收藏'"
             trigger="hover"
@@ -28,6 +30,22 @@
               @click="handleStar"
             />
           </a-tooltip>
+          <!-- 更多功能：删除 -->
+          <a-dropdown :trigger="['click']">
+            <a-avatar
+              shape="square"
+              class="plan-header-operation"
+              :src="moreImage"
+              :size="20"
+              @click="e => e.preventDefault()"
+            />
+            <a-menu slot="overlay" style="min-width:100px">
+              <a-menu-item key="1" @click="handleDelete">
+                <a-icon type="delete" />
+                删除
+              </a-menu-item>
+            </a-menu>
+          </a-dropdown>
         </div>
       </div>
     </div>
@@ -73,8 +91,10 @@
     </div>
   </div>
   <div v-else-if="$store.state.currentPlans.length > 0" class="plan-empty">
-    <img :src="emptyImage" alt="" class="plan-empty-image" />
-    <div class="plan-empty-title">点击标题查看详情</div>
+    <div class="plan-empty-image">
+      <img style="width: 100%" :src="emptyImage" alt="" />
+      <div style="color: #767879; padding-top: 20px;">点击标题查看详情</div>
+    </div>
   </div>
 </template>
 
@@ -108,6 +128,8 @@ export default {
       starImage: publicPath + "icons/" + "收藏.png",
       unstarImage: publicPath + "icons/" + "未收藏.png",
       emptyImage: publicPath + "images/" + "Knowledge.svg",
+      moreImage: publicPath + "icons/" + "更多.png",
+
       refresh: true,
 
       finish: false, // 完成状态
@@ -156,6 +178,18 @@ export default {
     handleStar() {
       console.log(this.plan.star ? "取消收藏" : "收藏");
       this.updatePlan({ star: !this.plan.star });
+    },
+    // 删除任务
+    handleDelete() {
+      this.$request({
+        url: `/api/plans/${this.plan.id}`,
+        method: "delete"
+      }).then(res => {
+        this.$store.state.planDataFull = res.data.map(
+          plan => new this.$Plan(plan)
+        );
+        console.log("成功删除并更新数据");
+      });
     },
     ...mapActions(["getTags"])
   },
@@ -294,18 +328,16 @@ export default {
 }
 
 .plan-empty {
-  position: absolute;
-  transform: translate(0, -80%);
-  top: 50%;
+  width: 100%;
+  height: 100%;
 }
 
 .plan-empty-image {
   width: 80%;
-}
-
-.plan-empty-title {
-  color: #767879;
-  padding-top: 20px;
+  left: 10%; /* (100-80)/2  */
+  position: absolute;
+  top: 40%;
+  transform: translate(0, -50%); /* 向上移动50%图片高度  */
 }
 
 .taks-icon {
@@ -313,7 +345,7 @@ export default {
 }
 
 .plan-header-operation {
-  margin: 0 15px 2px 0;
+  margin: 0 12px 2px 0;
 }
 
 .detail-row {
