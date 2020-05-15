@@ -8,10 +8,10 @@ export default function(plan) {
   obj.groupId = plan.groupId;
   obj.title = plan.title;
   obj.star = plan.star;
-  obj.alarm = plan.alarm;
+  obj.advancedDays = plan.advancedDays;
+  obj.alarmTime = plan.alarmTime;
   obj.typeId = plan.typeId;
   obj.status = plan.status;
-  obj.allDay = plan.allDay;
   obj.position = plan.position;
   obj.level = plan.level;
   obj.tags = plan.tags;
@@ -20,6 +20,7 @@ export default function(plan) {
   obj.attachments = plan.attachments;
   obj.start = plan.start;
   obj.end = plan.end;
+  obj.allDay = plan.allDay;
   obj.isDeleted = plan.isDeleted;
   obj.subTasks = plan.subTasks;
 
@@ -29,6 +30,21 @@ export default function(plan) {
   obj.startDate = new Date(obj.start); //开始时间
   obj.endDate = new Date(obj.end); //结束时间
   obj.finishDate = obj.finish ? new Date(obj.finish) : undefined; //完成时间
+  // 时间字符串（如："true__2020-01-01 10:10:10__2020-01-02 20:20:20" 或 "true__2020-01-01 10:10:10" 或 ""）
+  if (obj.allDay !== null && obj.start) {
+    obj.time = obj.allDay + "__" + obj.start;
+    if (obj.end) {
+      obj.time += "__" + obj.end;
+    }
+  } else {
+    obj.time = "";
+  }
+  // 提醒字符串（如："3 9:00" 或 ""）
+  if (obj.advancedDays !== null && obj.alarmTime) {
+    obj.alarm = obj.advancedDays + " " + obj.alarmTime;
+  } else {
+    obj.alarm = "";
+  }
 
   // 计算函数
   obj.isExpired = function() {

@@ -32,7 +32,7 @@
     <!-- 任务时间 -->
     <div class="detail-row">
       <a-icon type="clock-circle" class="taks-icon" />
-      <plan-time :start.sync="start" :end.sync="end" :checked.sync="checked" />
+      <!-- <plan-time v-model="time" /> -->
     </div>
     <!-- 提醒 -->
     <div class="detail-row" v-if="$moment(start)._isValid">
@@ -69,7 +69,7 @@
 import { mapActions } from "vuex";
 
 import PlanTag from "./Items/Tag";
-import PlanTime from "./Items/Time";
+// import PlanTime from "./Items/Time";
 import PlanAlarm from "./Items/Alarm";
 import PlanPosition from "./Items/Position";
 import PlanSubTasks from "./Items/SubTasks";
@@ -79,7 +79,7 @@ import PlanTitle from "./Items/Title";
 export default {
   components: {
     PlanTag,
-    PlanTime,
+    // PlanTime,
     PlanAlarm,
     PlanPosition,
     PlanSubTasks,
@@ -95,15 +95,14 @@ export default {
       emptyImage: publicPath + "images/" + "Knowledge.svg",
       refresh: true,
 
-      title: "", // 用户最终期望的标题
-      start: "", // 用户最终期望的开始时间
-      end: "", // 用户最终期望的结束时间
-      checked: "", // 用户最终期望的全天
-      tags: [], // 用户最终期望的标签
-      alarm: "", // 用户最终期望的提醒策略，如 "3 09:00"
-      position: "", // 用户最终期望的位置
-      subTasks: [], // 用户最终期望的子任务
-      description: "" // 用户最终期望的描述
+      title: "", // 标题
+      start: "", // 开始时间，如 "2020-01-01 10:10:10"
+      time: "", // 时间策略，如 "true__2020-01-01 10:10:10__2020-01-02 20:20:20" 或 "true__2020-01-01 10:10:10"
+      tags: [], // 标签
+      alarm: "", // 提醒策略，如 "3 09:00"
+      position: "", // 位置
+      subTasks: [], // 子任务
+      description: "" // 描述
     };
   },
   methods: {
@@ -125,11 +124,15 @@ export default {
           for (let key in data) {
             target[key] = res.data[key];
           }
+          target = this.$Plan(target);
           console.log("更新后", target);
+          this.$store.state.planDataFull = [
+            ...plans.filter(i => i.id !== res.data.id),
+            target
+          ];
         } else {
           console.log(`未找到目标计划: ${this.plan.id}`);
         }
-        this.$store.state.planDataFull = plans;
       });
     },
     // 收藏/取消收藏
@@ -220,7 +223,12 @@ export default {
     alarm(to) {
       if (this.plan.alarm !== to) {
         console.log("提醒数据发生了变化，推送到后端");
-        this.updatePlan({ alarm: to });
+        let advancedDays = to ? parseInt(to.split(" ")[0]) : null;
+        let alarmTime = to ? to.split(" ")[1] : "";
+        this.updatePlan({
+          advancedDays: advancedDays,
+          alarmTime: alarmTime
+        });
       } else {
         console.log("提醒数据没有变化");
       }

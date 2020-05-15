@@ -1,57 +1,46 @@
 <template>
-  <div>
-    <a-dropdown :trigger="['click']" v-model="visible">
-      <!-- 当计划原本就包含了提醒参数，或者用户刚刚设置完提醒参数，则显示下次提醒时间 -->
-      <span v-if="alarmString">
-        下次提醒：
-        <div class="alarm-string">
-          {{ alarmString }}
-        </div>
-      </span>
-      <span v-else style="color:#b3b3b3">设置提醒</span>
-      <div slot="overlay" class="container">
-        <a-row>
-          <span>提前天数</span>
-          <a-select v-model="advancedDays" class="select-value" size="small">
-            <a-select-option
-              :value="day"
-              :key="day"
-              v-for="day in array(0, 30)"
-            >
-              {{ day + " 天" }}
-            </a-select-option>
-          </a-select>
-        </a-row>
-        <a-row>
-          <span>提醒时间</span>
-          <a-select v-model="alarmTime" class="select-value" size="small">
-            <a-select-option
-              :value="time.value"
-              :key="time.value"
-              v-for="time in timeArray"
-            >
-              {{ time.content }}
-            </a-select-option>
-          </a-select>
-        </a-row>
-        <div style="padding-top: 10px; text-align: right">
-          <a-button style="margin-right: 5px" @click="visible = false">
-            取消
-          </a-button>
-          <a-button
-            type="danger"
-            style="margin-right: 5px"
-            @click="handleClear"
-          >
-            清除
-          </a-button>
-          <a-button type="primary" @click="handleUpdate">
-            确定
-          </a-button>
-        </div>
+  <a-dropdown :trigger="['click']" v-model="visible">
+    <span v-if="alarmString">
+      下次提醒：
+      <div class="alarm-string">
+        {{ alarmString }}
       </div>
-    </a-dropdown>
-  </div>
+    </span>
+    <span v-else style="color:#b3b3b3">设置提醒</span>
+    <div slot="overlay" class="container">
+      <a-row>
+        <span>提前天数</span>
+        <a-select v-model="advancedDays" class="select-value" size="small">
+          <a-select-option :value="day" :key="day" v-for="day in array(0, 30)">
+            {{ day + " 天" }}
+          </a-select-option>
+        </a-select>
+      </a-row>
+      <a-row>
+        <span>提醒时间</span>
+        <a-select v-model="alarmTime" class="select-value" size="small">
+          <a-select-option
+            :value="time.value"
+            :key="time.value"
+            v-for="time in timeArray"
+          >
+            {{ time.content }}
+          </a-select-option>
+        </a-select>
+      </a-row>
+      <div style="padding-top: 10px; text-align: right">
+        <a-button style="margin-right: 5px" @click="visible = false">
+          取消
+        </a-button>
+        <a-button type="danger" style="margin-right: 5px" @click="handleClear">
+          清除
+        </a-button>
+        <a-button type="primary" @click="handleUpdate">
+          确定
+        </a-button>
+      </div>
+    </div>
+  </a-dropdown>
 </template>
 
 <script>
@@ -115,7 +104,7 @@ export default {
     }
   },
   methods: {
-    // 防抖地向后台提交数据更新
+    // 向后台提交数据更新
     emitInput() {
       this.$emit("input", this.input);
     },

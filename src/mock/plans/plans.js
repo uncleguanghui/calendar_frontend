@@ -40,16 +40,21 @@ function randomDate(seed = 2020, bias = 0) {
 }
 
 // 随机生成一个日期字符串对象，或什么都没有
-function randomDateStringPair(seed) {
+function createTime() {
   if (Mock.mock("@boolean")) {
+    let seed = Mock.mock("@integer");
     let start = randomDate(seed);
+    let allDay = Mock.mock("@boolean"); // 是否是全天的任务，boolean
+
     let end = randomDate(seed, Mock.mock(`@integer(1,${3 * dayMS})`));
     return {
+      allDay: allDay,
       start: dateFormat("Y-mm-dd HH:MM:SS", start), //开始时间
       end: dateFormat("Y-mm-dd HH:MM:SS", end) //结束时间
     };
   } else {
     return {
+      allDay: null,
       start: "",
       end: ""
     };
@@ -78,16 +83,19 @@ function createAlarm() {
     let advancedDays = Mock.mock("@integer(0, 30)");
     let alarmHour = Mock.mock("@integer(0, 24)");
     let alarmMinute = Mock.mock("@integer(0, 3)") * 15;
-
-    return (
-      advancedDays +
-      " " +
+    let alarmTime =
       (alarmHour + "").padStart(2, "0") +
       ":" +
-      (alarmMinute + "").padStart(2, "0")
-    );
+      (alarmMinute + "").padStart(2, "0");
+    return {
+      advancedDays: advancedDays,
+      alarmTime: alarmTime
+    };
   } else {
-    return "";
+    return {
+      advancedDays: null,
+      alarmTime: ""
+    };
   }
 }
 
@@ -100,10 +108,8 @@ function createPlans() {
       groupId: Mock.mock("@id"), //计划书ID
       title: Mock.mock("@ctitle(1, 30)"), // 标题，1~50字
       star: Mock.mock("@boolean"), // 是否收藏，boolean
-      alarm: createAlarm(),
       typeId: "life",
       status: Mock.mock("@integer(0,1)"), // 完成状态 : 1 - 已完成；0 - 未完成
-      allDay: Mock.mock("@boolean"), // 是否是全天的任务，boolean
       isDeleted: Mock.mock("@boolean"), // 是否被删除
       position: Mock.mock("@city"), // 国内随机城市
       level: Mock.mock(`@pick(${levels})`), // 优先级
@@ -115,8 +121,10 @@ function createPlans() {
       description: Mock.mock("@cparagraph(1, 20)"), // 计划描述，1~20段
       attachments: Mock.mock({ "image|0-3": ["@image"] }).image // 附件——图片，0~3张
     };
-    let time_ = randomDateStringPair(Mock.mock("@integer"));
+    let time_ = createTime();
     plan_ = Object.assign(plan_, time_);
+    let alarm_ = createAlarm();
+    plan_ = Object.assign(plan_, alarm_);
     plans_.push(plan_);
   }
   return plans_;
