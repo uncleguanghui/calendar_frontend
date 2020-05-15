@@ -109,35 +109,30 @@
           </a-dropdown>
         </div>
         <a-divider style="margin: 12px 0 0 0" />
-        <div style="padding-top: 10px; text-align: right;">
-          <div style="float: left">
+        <a-row>
+          <a-col :span="9">
             全天：
             <a-switch v-model="allDay">
               <a-icon slot="checkedChildren" type="check" />
               <a-icon slot="unCheckedChildren" type="close" />
             </a-switch>
-          </div>
-          <div>
-            <a-button
-              size="small"
-              style="margin-right: 10px"
-              @click="visible = false"
-            >
+          </a-col>
+          <a-col :span="5">
+            <a-button size="small" @click="visible = false">
               取消
             </a-button>
-            <a-button
-              type="danger"
-              size="small"
-              style="margin-right: 10px"
-              @click="handleClear"
-            >
+          </a-col>
+          <a-col :span="5">
+            <a-button type="danger" size="small" @click="handleClear">
               清除
             </a-button>
+          </a-col>
+          <a-col :span="5">
             <a-button size="small" type="primary" @click="handleUpdate">
               确定
             </a-button>
-          </div>
-        </div>
+          </a-col>
+        </a-row>
       </div>
     </div>
   </a-dropdown>
@@ -380,21 +375,6 @@ export default {
 .time-string {
   display: inline-block;
   padding: 0 3px;
-  cursor: pointer;
-}
-
-.time-string:hover {
-  background-color: #e8e8e8;
-  border-radius: 3px;
-}
-.time-add {
-  width: 100px;
-  border: 1px dashed #bfbfbf;
-  border-radius: 5px;
-  font-size: 12px;
-  padding-left: 8px;
-  color: #bfbfbf;
-  cursor: pointer;
 }
 
 .span-data,

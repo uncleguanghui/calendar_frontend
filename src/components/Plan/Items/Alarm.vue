@@ -6,7 +6,7 @@
         {{ alarmString }}
       </div>
     </span>
-    <span v-else style="color:#b3b3b3">设置提醒</span>
+    <span v-else style="color:#bfbfbf">设置提醒</span>
     <div slot="overlay" class="container">
       <a-row>
         <span>提前天数</span>
@@ -28,17 +28,24 @@
           </a-select-option>
         </a-select>
       </a-row>
-      <div style="padding-top: 10px; text-align: right">
-        <a-button style="margin-right: 5px" @click="visible = false">
-          取消
-        </a-button>
-        <a-button type="danger" style="margin-right: 5px" @click="handleClear">
-          清除
-        </a-button>
-        <a-button type="primary" @click="handleUpdate">
-          确定
-        </a-button>
-      </div>
+      <a-divider style="margin: 16px 0" />
+      <a-row>
+        <a-col :span="8">
+          <a-button @click="visible = false">
+            取消
+          </a-button>
+        </a-col>
+        <a-col :span="8">
+          <a-button type="danger" @click="handleClear">
+            清除
+          </a-button>
+        </a-col>
+        <a-col :span="8">
+          <a-button type="primary" @click="handleUpdate">
+            确定
+          </a-button>
+        </a-col>
+      </a-row>
     </div>
   </a-dropdown>
 </template>
@@ -178,10 +185,5 @@ export default {
 .alarm-string {
   display: inline-block;
   padding: 0 3px;
-  cursor: pointer;
-}
-.alarm-string:hover {
-  background-color: #e8e8e8;
-  border-radius: 3px;
 }
 </style>

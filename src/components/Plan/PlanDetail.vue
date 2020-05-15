@@ -2,26 +2,32 @@
   <div class="plan-page" v-if="plan.id">
     <!-- 标题 -->
     <div class="detail-row">
-      <a-checkbox class="plan-header-checkbox" />
-      <div style="width:calc(100% - 100px)">
-        <plan-title v-model="title" />
-      </div>
-      <!-- 右上角功能区 -->
-      <div :style="{ float: 'right' }">
-        <a-tooltip
-          :title="!plan.star ? '点击收藏' : '点击取消收藏'"
-          trigger="hover"
-          placement="bottom"
-        >
-          <a-avatar
-            shape="square"
-            :src="!plan.star ? starImage : unstarImage"
-            :size="14"
-            class="plan-header-star"
-            @click="handleStar"
+      <a-checkbox class="taks-icon" v-model="finish" />
+      <div class="plan-content">
+        <!-- 标题区 -->
+        <div style="display: contents">
+          <plan-title
+            v-model="title"
+            class="text-content"
+            style="width:calc(100% - 60px)"
           />
-        </a-tooltip>
-        <a-button type="primary" size="small">保存</a-button>
+        </div>
+        <!-- 右上角功能区 -->
+        <div :style="{ float: 'right' }">
+          <a-tooltip
+            :title="!plan.star ? '点击收藏' : '点击取消收藏'"
+            trigger="hover"
+            placement="bottom"
+          >
+            <a-avatar
+              shape="square"
+              :src="!plan.star ? starImage : unstarImage"
+              :size="14"
+              class="plan-header-star"
+              @click="handleStar"
+            />
+          </a-tooltip>
+        </div>
       </div>
     </div>
     <!-- 标签 -->
@@ -32,17 +38,23 @@
     <!-- 任务时间 -->
     <div class="detail-row">
       <a-icon type="clock-circle" class="taks-icon" />
-      <plan-time v-model="time" v-if="refresh" />
+      <div class="plan-content pointer-content">
+        <plan-time v-model="time" v-if="refresh" />
+      </div>
     </div>
     <!-- 提醒 -->
     <div class="detail-row" v-if="$moment(start)._isValid">
       <a-icon type="bell" class="taks-icon" />
-      <plan-alarm v-model="alarm" :start="start" />
+      <div class="plan-content pointer-content">
+        <plan-alarm v-model="alarm" :start="start" />
+      </div>
     </div>
     <!-- 地点 -->
     <div class="detail-row">
       <a-icon type="environment" class="taks-icon" />
-      <plan-position v-model="position" />
+      <div class="plan-content text-content">
+        <plan-position v-model="position" />
+      </div>
     </div>
     <!-- 子任务 -->
     <div class="detail-row">
@@ -54,7 +66,7 @@
     <!-- 描述 -->
     <div class="detail-row">
       <a-icon type="file-text" class="taks-icon" />
-      <div class="plan-content">
+      <div class="plan-content text-content">
         <plan-description v-model="description" />
       </div>
     </div>
@@ -95,6 +107,7 @@ export default {
       emptyImage: publicPath + "images/" + "Knowledge.svg",
       refresh: true,
 
+      finish: false, // 完成状态
       title: "", // 标题
       start: "", // 开始时间，如 "2020-01-01 10:10:10"
       time: "", // 时间策略，如 "true__2020-01-01 10:10:10__2020-01-02 20:20:20" 或 "true__2020-01-01 10:10:10"
@@ -168,6 +181,7 @@ export default {
         this.refresh = true;
       });
 
+      this.finish = to.finish;
       this.title = to.title;
       this.start = to.start;
       this.time = to.time;
@@ -247,6 +261,14 @@ export default {
       } else {
         console.log("时间数据没有变化");
       }
+    },
+    finish(to) {
+      if (this.plan.finish !== to) {
+        console.log("完成状态数据发生了变化，推送到后端");
+        this.updatePlan({ status: to ? 1 : 0 });
+      } else {
+        console.log("完成状态数据没有变化");
+      }
     }
   }
 };
@@ -277,10 +299,6 @@ export default {
   padding-right: 10px;
 }
 
-.plan-header-checkbox {
-  float: left;
-}
-
 .plan-header-star {
   margin: 0 15px 2px 0;
 }
@@ -293,5 +311,25 @@ export default {
 
 .plan-content {
   width: calc(100% - 20px);
+}
+
+/* 可点击的内容 */
+.pointer-content {
+  cursor: pointer;
+}
+.pointer-content:hover {
+  background-color: #e8e8e8;
+  border-radius: 3px;
+}
+
+/* 可编辑的内容 */
+.text-content {
+  cursor: text;
+}
+
+.text-content:focus,
+.text-content:hover {
+  background-color: #40a9ff24;
+  border-radius: 3px;
 }
 </style>

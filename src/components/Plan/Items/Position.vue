@@ -62,7 +62,6 @@ export default {
   }
 
   /deep/ input {
-    color: #52c41a;
     width: 300px;
     border: none;
     padding: 0;
@@ -70,9 +69,15 @@ export default {
 
   /deep/ input:focus {
     box-shadow: none;
-    border: 1px solid;
-    border-color: #40a9ff;
-    border-radius: 3px;
+    border: none;
+    border-color: none;
+    border-radius: none;
+    background: #fff0;
   }
+}
+
+.position-input:focus {
+  border: none;
+  box-shadow: none;
 }
 </style>

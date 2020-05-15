@@ -25,6 +25,7 @@ export default function(plan) {
   obj.subTasks = plan.subTasks;
 
   // 附加属性
+  obj.finish = obj.status === 1;
   obj.startString = dateFormat("m月d日", new Date(obj.start));
   obj.endString = dateFormat("m月d日", new Date(obj.end));
   obj.startDate = new Date(obj.start); //开始时间

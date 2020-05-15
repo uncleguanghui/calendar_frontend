@@ -11,7 +11,11 @@
           theme="light"
           mode="horizontal"
           :selectedKeys="selectedKeys"
-          :style="{ lineHeight: '62px', textAlign: 'left' }"
+          :style="{
+            lineHeight: '62px',
+            textAlign: 'left',
+            background: '#fff0'
+          }"
           @click="clickHandle"
         >
           <a-menu-item :key="item.key" v-for="item in menuItems">

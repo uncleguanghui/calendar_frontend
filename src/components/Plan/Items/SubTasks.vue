@@ -36,8 +36,7 @@
       </span>
     </a-row>
   </div>
-  <div class="task-empty" v-else @click="handleCreate">
-    <a-icon type="plus"></a-icon>
+  <div style="color:#bfbfbf" v-else @click="handleCreate">
     添加子任务
   </div>
 </template>
@@ -308,6 +307,7 @@ export default {
   margin-bottom: 5px;
   transition: none; /* 去掉动画 */
   font-size: 8px;
+  background: none;
 }
 
 .task-input:focus {
@@ -318,15 +318,5 @@ export default {
   color: #c7c7c7;
   min-width: 20px;
   padding: 2px 0 0 5px;
-}
-
-.task-empty {
-  width: 100px;
-  border: 1px dashed #bfbfbf;
-  border-radius: 5px;
-  font-size: 12px;
-  padding-left: 8px;
-  color: #bfbfbf;
-  cursor: pointer;
 }
 </style>

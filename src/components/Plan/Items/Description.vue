@@ -47,11 +47,11 @@ export default {
   border: none;
   padding: 0;
   resize: none;
+  background: #fff0;
 }
 
 .plan-description-content:focus {
   border: none;
   box-shadow: none;
-  background: #40a9ff24;
 }
 </style>

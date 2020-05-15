@@ -3,7 +3,7 @@
     <a-collapse
       v-model="activeKey"
       :bordered="false"
-      :style="{ backgroundColor: '#fff' }"
+      :style="{ backgroundColor: '#fff0' }"
     >
       <a-collapse-panel :key="item.key" v-for="item in plans">
         <div slot="header">

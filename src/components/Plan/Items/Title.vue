@@ -49,9 +49,10 @@ export default {
   font-weight: bold;
   font-size: 16px;
   display: -webkit-inline-box;
-  padding: 0 10px;
+  padding: 0;
   border: none;
   resize: none;
+  background: #fff0;
 }
 
 .plan-header-label:focus {
