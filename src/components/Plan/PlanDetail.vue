@@ -24,15 +24,15 @@
         <a-button type="primary" size="small">保存</a-button>
       </div>
     </div>
+    <!-- 标签 -->
     <div class="detail-row">
-      <!-- 图标 -->
       <a-icon type="tags" class="taks-icon" />
       <plan-tag v-model="tags" v-if="refresh" />
     </div>
     <!-- 任务时间 -->
     <div class="detail-row">
       <a-icon type="clock-circle" class="taks-icon" />
-      <!-- <plan-time v-model="time" /> -->
+      <plan-time v-model="time" v-if="refresh" />
     </div>
     <!-- 提醒 -->
     <div class="detail-row" v-if="$moment(start)._isValid">
@@ -69,7 +69,7 @@
 import { mapActions } from "vuex";
 
 import PlanTag from "./Items/Tag";
-// import PlanTime from "./Items/Time";
+import PlanTime from "./Items/Time";
 import PlanAlarm from "./Items/Alarm";
 import PlanPosition from "./Items/Position";
 import PlanSubTasks from "./Items/SubTasks";
@@ -79,7 +79,7 @@ import PlanTitle from "./Items/Title";
 export default {
   components: {
     PlanTag,
-    // PlanTime,
+    PlanTime,
     PlanAlarm,
     PlanPosition,
     PlanSubTasks,
@@ -170,8 +170,7 @@ export default {
 
       this.title = to.title;
       this.start = to.start;
-      this.end = to.end;
-      this.checke = to.checkedAllDay;
+      this.time = to.time;
       this.tags = to.tags;
       this.alarm = to.alarm;
       this.position = to.position;
@@ -231,6 +230,22 @@ export default {
         });
       } else {
         console.log("提醒数据没有变化");
+      }
+    },
+    time(to) {
+      if (this.plan.time !== to) {
+        console.log("时间数据发生了变化，推送到后端");
+        let res = to.split("__");
+        let allDay = res.length > 1 ? res[0] === "true" : null;
+        let start = res.length > 1 ? res[1] : "";
+        let end = res.length > 2 ? res[2] : "";
+        this.updatePlan({
+          allDay: allDay,
+          start: start,
+          end: end
+        });
+      } else {
+        console.log("时间数据没有变化");
       }
     }
   }

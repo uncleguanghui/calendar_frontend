@@ -41,24 +41,27 @@ function randomDate(seed = 2020, bias = 0) {
 
 // 随机生成一个日期字符串对象，或什么都没有
 function createTime() {
+  let time = {
+    allDay: null,
+    start: "",
+    end: ""
+  };
+
   if (Mock.mock("@boolean")) {
     let seed = Mock.mock("@integer");
-    let start = randomDate(seed);
-    let allDay = Mock.mock("@boolean"); // 是否是全天的任务，boolean
 
-    let end = randomDate(seed, Mock.mock(`@integer(1,${3 * dayMS})`));
-    return {
-      allDay: allDay,
-      start: dateFormat("Y-mm-dd HH:MM:SS", start), //开始时间
-      end: dateFormat("Y-mm-dd HH:MM:SS", end) //结束时间
-    };
-  } else {
-    return {
-      allDay: null,
-      start: "",
-      end: ""
-    };
+    time.allDay = Mock.mock("@boolean"); // 是否是全天的任务，boolean
+    time.start = dateFormat("Y-mm-dd HH:MM:SS", randomDate(seed)); // 开始时间
+
+    // 随机添加结束时间
+    if (Mock.mock("@boolean")) {
+      time.end = dateFormat(
+        "Y-mm-dd HH:MM:SS",
+        randomDate(seed, Mock.mock(`@integer(1,${3 * dayMS})`))
+      );
+    }
   }
+  return time;
 }
 
 // 创建子任务，或者没有子任务
