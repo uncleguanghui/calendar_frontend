@@ -47,11 +47,6 @@
 </template>
 
 <script>
-import moment from "moment";
-import "moment/locale/zh-cn";
-
-moment.locale("zh-cn");
-
 export default {
   props: {
     date: {
@@ -71,7 +66,6 @@ export default {
   },
   data() {
     return {
-      moment,
       time: undefined,
       year: new Date().getFullYear(),
       month: new Date().getMonth() + 1

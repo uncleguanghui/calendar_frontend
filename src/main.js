@@ -3,6 +3,7 @@ import App from "./App.vue";
 import router from "./router";
 import store from "./store";
 import {
+  ConfigProvider,
   Button,
   Layout,
   Menu,
@@ -46,6 +47,7 @@ VueClipboard.config.autoSetContainer = true;
 
 Vue.config.productionTip = false;
 
+Vue.use(ConfigProvider);
 Vue.use(Button);
 Vue.use(Layout);
 Vue.use(Menu);
