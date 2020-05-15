@@ -9,21 +9,22 @@
           <plan-title
             v-model="title"
             class="text-content"
-            style="width:calc(100% - 60px)"
+            style="width:calc(100% - 100px)"
           />
         </div>
         <!-- 右上角功能区 -->
         <div :style="{ float: 'right' }">
+          <plan-level v-model="level" class="plan-header-operation" />
           <a-tooltip
             :title="!plan.star ? '点击收藏' : '点击取消收藏'"
             trigger="hover"
-            placement="bottom"
+            placement="top"
           >
             <a-avatar
               shape="square"
               :src="!plan.star ? starImage : unstarImage"
               :size="14"
-              class="plan-header-star"
+              class="plan-header-operation"
               @click="handleStar"
             />
           </a-tooltip>
@@ -87,6 +88,7 @@ import PlanPosition from "./Items/Position";
 import PlanSubTasks from "./Items/SubTasks";
 import PlanDescription from "./Items/Description";
 import PlanTitle from "./Items/Title";
+import PlanLevel from "./Items/Level";
 
 export default {
   components: {
@@ -96,7 +98,8 @@ export default {
     PlanPosition,
     PlanSubTasks,
     PlanDescription,
-    PlanTitle
+    PlanTitle,
+    PlanLevel
   },
   data() {
     const publicPath = process.env.BASE_URL;
@@ -108,6 +111,7 @@ export default {
       refresh: true,
 
       finish: false, // 完成状态
+      level: "", // 优先级
       title: "", // 标题
       start: "", // 开始时间，如 "2020-01-01 10:10:10"
       time: "", // 时间策略，如 "true__2020-01-01 10:10:10__2020-01-02 20:20:20" 或 "true__2020-01-01 10:10:10"
@@ -181,6 +185,7 @@ export default {
         this.refresh = true;
       });
 
+      this.level = to.level;
       this.finish = to.finish;
       this.title = to.title;
       this.start = to.start;
@@ -269,6 +274,14 @@ export default {
       } else {
         console.log("完成状态数据没有变化");
       }
+    },
+    level(to) {
+      if (this.plan.level !== to) {
+        console.log("优先级数据发生了变化，推送到后端");
+        this.updatePlan({ level: to });
+      } else {
+        console.log("优先级数据没有变化");
+      }
     }
   }
 };
@@ -299,7 +312,7 @@ export default {
   padding-right: 10px;
 }
 
-.plan-header-star {
+.plan-header-operation {
   margin: 0 15px 2px 0;
 }
 

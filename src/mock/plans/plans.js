@@ -6,7 +6,7 @@ let Mock = require("mockjs");
 
 let dayMS = 60 * 60 * 24 * 1000; //一天的毫秒数
 let monthMS = dayMS * 30; //一个月的毫秒数
-let levels = ["high", "medium", "low", "none", null];
+let levels = ["high", "medium", "low", "none"];
 
 // 创建标签
 function createTags() {

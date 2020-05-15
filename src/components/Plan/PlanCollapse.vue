@@ -16,11 +16,10 @@
           <div class="checkbox-content" @click="() => clickHandle(plan)">
             <!-- 标题 -->
             <span class="checkbox-label">
-              <a-avatar
-                shape="square"
-                v-if="getLevelImage(plan.level)"
-                :src="getLevelImage(plan.level)"
-                :size="18"
+              <plan-level
+                :showDropdown="false"
+                v-if="plan.level !== 'none'"
+                :value="plan.level"
                 :style="{ margin: '0 5px 2px 0' }"
               />
               {{ plan.title }}
@@ -63,7 +62,10 @@
 </template>
 
 <script>
+import PlanLevel from "./Items/Level";
+
 export default {
+  components: { PlanLevel },
   props: {
     // 排序对象
     selectedSortKey: {
@@ -101,23 +103,6 @@ export default {
     }
   },
   methods: {
-    getLevelImage(level) {
-      let name = undefined;
-      switch (level) {
-        case "high":
-          name = "高优先级.png";
-          break;
-        case "medium":
-          name = "中优先级.png";
-          break;
-        case "low":
-          name = "低优先级.png";
-          break;
-        default:
-          break;
-      }
-      return name ? this.publicPath + "icons/" + name : undefined;
-    },
     onChange(plan) {
       // todo: 添加完成事件
       console.log(`${plan}已完成`);
