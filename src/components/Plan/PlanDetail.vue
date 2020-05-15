@@ -35,9 +35,9 @@
       <plan-time :start.sync="start" :end.sync="end" :checked.sync="checked" />
     </div>
     <!-- 提醒 -->
-    <div class="detail-row">
+    <div class="detail-row" v-if="$moment(start)._isValid">
       <a-icon type="bell" class="taks-icon" />
-      <plan-alarm v-model="alarm" />
+      <plan-alarm v-model="alarm" :start="start" />
     </div>
     <!-- 地点 -->
     <div class="detail-row">
@@ -100,7 +100,7 @@ export default {
       end: "", // 用户最终期望的结束时间
       checked: "", // 用户最终期望的全天
       tags: [], // 用户最终期望的标签
-      alarm: "", // 用户最终期望的提醒
+      alarm: "", // 用户最终期望的提醒策略，如 "3 09:00"
       position: "", // 用户最终期望的位置
       subTasks: [], // 用户最终期望的子任务
       description: "" // 用户最终期望的描述
@@ -170,7 +170,7 @@ export default {
       this.end = to.end;
       this.checke = to.checkedAllDay;
       this.tags = to.tags;
-      this.alarm = to.alarmStrategy;
+      this.alarm = to.alarm;
       this.position = to.position;
       this.subTasks = to.subTasks;
       this.description = to.description;
@@ -179,31 +179,50 @@ export default {
       let idOld = this.plan.tags.map(i => i.id);
       let idNew = to.map(i => i.id);
       if (idOld.sort().toString() !== idNew.sort().toString()) {
+        console.log("标签数据发生了变化，推送到后端");
         this.updatePlan({ tags: idNew });
+      } else {
+        console.log("标签数据没有变化");
       }
     },
     title(to) {
       if (this.plan.title !== to) {
         console.log("标题数据发生了变化，推送到后端");
         this.updatePlan({ title: to });
+      } else {
+        console.log("标题数据没有变化");
       }
     },
     position(to) {
       if (this.plan.position !== to) {
         console.log("地址数据发生了变化，推送到后端");
         this.updatePlan({ position: to });
+      } else {
+        console.log("地址数据没有变化");
       }
     },
     subTasks(to) {
       if (this.plan.subTasks !== to) {
         console.log("子任务数据发生了变化，推送到后端");
         this.updatePlan({ subTasks: to });
+      } else {
+        console.log("子任务数据没有变化");
       }
     },
     description(to) {
       if (this.plan.description !== to) {
         console.log("描述数据发生了变化，推送到后端");
         this.updatePlan({ description: to });
+      } else {
+        console.log("描述数据没有变化");
+      }
+    },
+    alarm(to) {
+      if (this.plan.alarm !== to) {
+        console.log("提醒数据发生了变化，推送到后端");
+        this.updatePlan({ alarm: to });
+      } else {
+        console.log("提醒数据没有变化");
       }
     }
   }

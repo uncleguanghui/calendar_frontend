@@ -23,10 +23,10 @@ function createTags() {
 }
 let tags = createTags();
 
-// 根据 id 找到标签对象，找不到则返回 undefined
+// 根据 id 找到标签对象，找不到则返回空字符串
 function getTagById(id) {
   let targets = tags.filter(tag => tag.id === id);
-  return targets.length === 1 ? targets[0] : undefined;
+  return targets.length === 1 ? targets[0] : "";
 }
 
 // 由于 mockjs 生成的时间无法控制，所以单独写一个方法，用以生成一个时间
@@ -50,8 +50,8 @@ function randomDateStringPair(seed) {
     };
   } else {
     return {
-      start: undefined,
-      end: undefined
+      start: "",
+      end: ""
     };
   }
 }
@@ -72,17 +72,35 @@ function createSubTasks() {
   return tasks;
 }
 
+// 创建提醒策略（提前日期 + 提醒时间）,如 “3 09:00”
+function createAlarm() {
+  if (Mock.mock("@boolean")) {
+    let advancedDays = Mock.mock("@integer(0, 30)");
+    let alarmHour = Mock.mock("@integer(0, 24)");
+    let alarmMinute = Mock.mock("@integer(0, 3)") * 15;
+
+    return (
+      advancedDays +
+      " " +
+      (alarmHour + "").padStart(2, "0") +
+      ":" +
+      (alarmMinute + "").padStart(2, "0")
+    );
+  } else {
+    return "";
+  }
+}
+
 // 创建计划
 function createPlans() {
   let plans_ = [];
   for (let index = 0; index < Mock.mock("@integer(10, 30)"); index++) {
-    let time_ = randomDateStringPair(Mock.mock("@integer"));
     let plan_ = {
       id: Mock.mock("@id"), // 计划ID
       groupId: Mock.mock("@id"), //计划书ID
       title: Mock.mock("@ctitle(1, 30)"), // 标题，1~50字
       star: Mock.mock("@boolean"), // 是否收藏，boolean
-      alarmStrategy: "买菜1",
+      alarm: createAlarm(),
       typeId: "life",
       status: Mock.mock("@integer(0,1)"), // 完成状态 : 1 - 已完成；0 - 未完成
       allDay: Mock.mock("@boolean"), // 是否是全天的任务，boolean
@@ -97,7 +115,9 @@ function createPlans() {
       description: Mock.mock("@cparagraph(1, 20)"), // 计划描述，1~20段
       attachments: Mock.mock({ "image|0-3": ["@image"] }).image // 附件——图片，0~3张
     };
-    plans_.push(Object.assign(plan_, time_));
+    let time_ = randomDateStringPair(Mock.mock("@integer"));
+    plan_ = Object.assign(plan_, time_);
+    plans_.push(plan_);
   }
   return plans_;
 }
@@ -152,6 +172,8 @@ function updatePlan(id, params) {
         } else {
           target[key] = params[key];
         }
+      } else {
+        throw new HTTPERROR(`传递了不存在的属性 ${key}`, 400);
       }
     }
     plans = plans_;

@@ -27,11 +27,17 @@
             </span>
             <!-- 右上角 -->
             <div class="checkbox-right">
+              <!-- 提醒的符号 -->
+              <a-icon
+                type="bell"
+                v-if="plan.alarm"
+                style="padding-right: 10px"
+              />
               <!-- 子任务的符号 -->
               <a-icon
                 type="ordered-list"
                 v-if="plan.subTasks.length > 0"
-                style="padding-right: '20px'"
+                style="padding-right: 10px"
               />
               <!-- 开始日期 -->
               <span :style="{ color: plan.isExpired() ? '#ff4d4f' : '' }">
@@ -311,7 +317,7 @@ export default {
 
 .checkbox-label {
   font-weight: bold;
-  max-width: calc(100% - 100px);
+  max-width: calc(100% - 130px);
   top: 5px;
   position: relative;
 }

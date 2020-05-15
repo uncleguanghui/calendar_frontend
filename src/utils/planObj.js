@@ -8,7 +8,7 @@ export default function(plan) {
   obj.groupId = plan.groupId;
   obj.title = plan.title;
   obj.star = plan.star;
-  obj.alarmStrategy = plan.alarmStrategy;
+  obj.alarm = plan.alarm;
   obj.typeId = plan.typeId;
   obj.status = plan.status;
   obj.allDay = plan.allDay;
