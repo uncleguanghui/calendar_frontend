@@ -5,7 +5,8 @@
       :style="{
         background: '#fff',
         height: 'calc(100vh - 64px)',
-        left: 0
+        left: 0,
+        borderRight: '1px solid #e8e8e8'
       }"
       breakpoint="lg"
       collapsedWidth="0"

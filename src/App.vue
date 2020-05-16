@@ -29,4 +29,18 @@ export default {
   text-align: center;
   color: #2c3e50;
 }
+
+.hidden-input {
+  white-space: nowrap; // 不换行
+  display: block;
+  word-break: keep-all;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -o-text-overflow: ellipsis;
+  -icab-text-overflow: ellipsis;
+  -khtml-text-overflow: ellipsis;
+  -moz-text-overflow: ellipsis;
+  -webkit-text-overflow: ellipsis;
+}
 </style>
