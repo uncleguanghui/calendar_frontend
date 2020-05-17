@@ -1,38 +1,25 @@
 import Vue from "vue";
 import Vuex from "vuex";
 import request from "@/utils/request";
+import Plan from "@/utils/planObj";
 
 Vue.use(Vuex);
 
 export default new Vuex.Store({
   state: {
-    planSiderMenu: [
-      { key: "/plan/today", icon: "calendar", name: "今天" },
-      { key: "/plan/recent", icon: "schedule", name: "最近7天" },
-      { key: "/plan/star", icon: "star", name: "我的收藏", color: "#ffc53d" },
-      {
-        key: "/plan/all",
-        icon: "profile",
-        name: "全部",
-        style: { borderBottom: "1px dashed #d9d9d9" }
-      },
-      {
-        key: "/plan/finished",
-        icon: "check-circle",
-        name: "已完成"
-      },
-      { key: "/plan/trash", icon: "delete", name: "已删除", hideNum: true }
-    ], //计划侧边栏
+    planGroupMenu: [
+      { key: "today", icon: "calendar", name: "今天" },
+      { key: "recent", icon: "schedule", name: "最近7天" },
+      { key: "star", icon: "star", name: "我的收藏", iconColor: "#ffc53d" },
+      { key: "all", icon: "profile", name: "全部" },
+      { key: "finished", icon: "check-circle", name: "已完成" },
+      { key: "trash", icon: "delete", name: "已删除", hideNum: true }
+    ], // 计划分组
+    currentGroupKey: "", // 当前选中的分组
+    currentPlanId: "", // 当前打开的计划 Id
     planTags: [], // 所有标签
-    currentPlan: {}, // 当前计划
-    currentPlans: [], // 当前展开的所有计划
-    planDataFull: [], // 所有计划
-    planDataAll: [], // 全部计划，不包括已删除计划
-    planDataToday: [], // 今日计划，不包括已删除计划
-    planDataRecent: [], // 最近7天计划，不包括已删除计划
-    planDataStar: [], // 已收藏计划，不包括已删除计划
-    planDataFinished: [], // 已完成计划，不包括已删除计划
-    planDataTrash: [], // 已删除计划
+    currentPlans: [], // 当前展开的所有计划，planDataFull 变化时会自动跟着变
+    planDataFull: [], // 所有计划，其变化会自动影响所有数据，包括 currentPlans 和当前打开的计划
     // 图标列表里，图标的位置是有讲究的，按从弱到强以及关联性排序（为了在弱匹配时能返回一个较正确的图标）
     weatherDict: {
       雨: [
@@ -157,7 +144,7 @@ export default new Vuex.Store({
         method: "get"
       }).then(res => {
         state.planTags = res.data;
-        console.log("获取最新标签");
+        console.log("4 成功获取所有标签");
       });
     },
     // 创建一个标签
@@ -172,11 +159,12 @@ export default new Vuex.Store({
       }).then(res => {
         // 更新标签
         state.planTags = res.data;
-        console.log("创建一个新标签");
+        console.log(`4 创建一个新标签：${title}`);
       });
     },
     // 更新一个标签
     UPDATETAG(state, tag) {
+      console.log("4 更新标签内容", tag);
       return request({
         url: `/api/tags/${tag.id}`,
         method: "put",
@@ -187,21 +175,75 @@ export default new Vuex.Store({
       }).then(res => {
         // 更新列表里的数据
         let tags = [...state.planTags];
-        let targets = tags.filter(item => item.id === res.data.id);
-        let target = targets.length === 1 ? targets[0] : undefined;
+        let tagIndex = tags.map(i => i.id).indexOf(res.data.id);
 
-        if (target) {
-          console.log("更新前", target);
+        if (tagIndex > -1) {
+          let target = tags[tagIndex];
           for (let key in res.data) {
             target[key] = res.data[key];
           }
-          console.log("更新后", target);
+          state.planTags = tags;
+          console.log("4 单个标签更新完成", target);
         } else {
-          console.log(`未找到目标计划: ${this.plan.id}`);
+          console.warn("4 未找到目标标签");
         }
+      });
+    },
+    // 修改当前计划列表
+    SETCURRENTPLANS(state, plans) {
+      state.currentPlans = plans;
+    },
+    // 修改当前展示的计划详情
+    SETCURRENTPLANID(state, id) {
+      state.currentPlanId = id;
+    },
+    // 修改当前选中的分组 key
+    SETCURRENTGROUPKEY(state, key) {
+      state.currentGroupKey = key;
+    },
+    // 获取当前所有计划
+    GETPLANS(state) {
+      request({
+        url: "/api/plans",
+        method: "get"
+      }).then(res => {
+        state.planDataFull = res.data.map(plan => new Plan(plan));
+        console.log("1 成功获取所有计划");
+      });
+    },
+    // 更新计划
+    UPDATEPLAN(state, id, data) {
+      console.log("3 更新计划内容", data);
+      request({
+        url: `/api/plans/${id}`,
+        method: "put",
+        data: data
+      }).then(res => {
+        // 更新列表里的数据
+        let plans = [...state.planDataFull];
+        let planIndex = plans.map(i => i.id).indexOf(res.data.id);
 
-        state.planTags = tags;
-        console.log("更新一个新标签");
+        if (planIndex > -1) {
+          let target = plans[planIndex];
+          for (let key in res.data) {
+            target[key] = res.data[key];
+          }
+          plans[planIndex] = new Plan(target);
+          state.planDataFull = plans;
+          console.log("3 单个计划更新完成", target);
+        } else {
+          console.warn("3 未找到目标计划");
+        }
+      });
+    },
+    // 删除计划
+    DELETEPLAN(state, id) {
+      request({
+        url: `/api/plans/${id}`,
+        method: "delete"
+      }).then(res => {
+        state.planDataFull = res.data.map(plan => new Plan(plan));
+        console.log("3 删除单个计划，并更新所有计划数据");
       });
     }
   },
@@ -214,6 +256,24 @@ export default new Vuex.Store({
     },
     updateTag({ commit }, tag) {
       commit("UPDATETAG", tag);
+    },
+    setCurrentPlans({ commit }, plans) {
+      commit("SETCURRENTPLANS", plans);
+    },
+    setCurrentPlanId({ commit }, id) {
+      commit("SETCURRENTPLANID", id);
+    },
+    setCurrentGroupKey({ commit }, key) {
+      commit("SETCURRENTGROUPKEY", key);
+    },
+    getPlans({ commit }) {
+      commit("GETPLANS");
+    },
+    updatePlan({ commit }, id, data) {
+      commit("UPDATEPLAN", id, data);
+    },
+    deletePlan({ commit }, id) {
+      commit("DELETEPLAN", id);
     }
   },
   modules: {}

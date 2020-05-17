@@ -1,4 +1,4 @@
-import dateFormat from "./dateFormat";
+import moment from "moment";
 
 export default function(plan) {
   var obj = new Object();
@@ -23,14 +23,12 @@ export default function(plan) {
   obj.allDay = plan.allDay;
   obj.isDeleted = plan.isDeleted;
   obj.subTasks = plan.subTasks;
+  obj.finish = plan.finish;
 
   // 附加属性
-  obj.finish = obj.status === 1;
-  obj.startString = dateFormat("m月d日", new Date(obj.start));
-  obj.endString = dateFormat("m月d日", new Date(obj.end));
-  obj.startDate = new Date(obj.start); //开始时间
-  obj.endDate = new Date(obj.end); //结束时间
-  obj.finishDate = obj.finish ? new Date(obj.finish) : undefined; //完成时间
+  obj.startDate = moment(obj.start); // 开始时间
+  obj.endDate = moment(obj.end); // 结束时间
+  obj.finishDate = moment(obj.finish); // 完成时间
   // 时间字符串（如："true__2020-01-01 10:10:10__2020-01-02 20:20:20" 或 "true__2020-01-01 10:10:10" 或 ""）
   if (obj.allDay !== null && obj.start) {
     obj.time = obj.allDay + "__" + obj.start;
@@ -48,76 +46,87 @@ export default function(plan) {
   }
 
   // 计算函数
+  // 已过期：状态为0，且结束时间早于今天0点（如果没有结束时间，则开始时间早于今天0点）
   obj.isExpired = function() {
-    return obj.status === 0 && obj.endDate <= new Date();
+    const today0 = moment().startOf("day");
+    return (
+      obj.status === 0 &&
+      ((obj.endDate._isValid && obj.endDate < today0) ||
+        (!obj.endDate._isValid &&
+          obj.startDate._isValid &&
+          obj.startDate < today0))
+    );
   };
+  // 已完成：状态为1
   obj.isFinished = function() {
     return obj.status === 1;
   };
-  obj.isFinishedToday = function() {
-    if (obj.isFinished()) {
-      const today0 = new Date(new Date().setHours(0, 0, 0, 0)); // 今天0点
-      const tomorrow0 = new Date(today0).setDate(today0.getDate() + 1); // 明天0点
-      return (
-        (obj.endDate >= today0 && obj.endDate < tomorrow0) ||
-        (obj.finishDate &&
-          obj.finishDate >= today0 &&
-          obj.finishDate < tomorrow0)
-      );
-    } else {
-      return false;
-    }
-  };
-  obj.isFinishedRecent = function() {
-    if (obj.isFinished()) {
-      const today0 = new Date(new Date().setHours(0, 0, 0, 0)); // 今天0点
-      const future0 = new Date(today0).setDate(today0.getDate() + 7); // 7天后的0点
-      return (
-        (obj.endDate >= today0 && obj.endDate < future0) ||
-        (obj.finishDate && obj.finishDate >= today0 && obj.finishDate < future0)
-      );
-    } else {
-      return false;
-    }
-  };
+  // 进行中：状态为0，且结束时间晚于今天0点（如果没有结束时间，则开始时间晚于今天0点）
   obj.isGoing = function() {
-    return obj.status === 0 && obj.endDate > new Date();
+    const today0 = moment().startOf("day");
+    return (
+      obj.status === 0 &&
+      ((obj.endDate._isValid && obj.endDate >= today0) ||
+        (!obj.endDate._isValid &&
+          obj.startDate._isValid &&
+          obj.startDate >= today0))
+    );
   };
-  obj.isGoingToday = function() {
-    if (obj.isGoing()) {
-      const today0 = new Date(new Date().setHours(0, 0, 0, 0)); // 今天0点
-      const tomorrow0 = new Date(today0).setDate(today0.getDate() + 1); // 明天0点
-      return !(obj.startDate > tomorrow0);
-    } else {
-      return false;
-    }
-  };
-  obj.isGoingRecent = function() {
-    if (obj.isGoing()) {
-      const today0 = new Date(new Date().setHours(0, 0, 0, 0)); // 今天0点
-      const future0 = new Date(today0).setDate(today0.getDate() + 7); // 7天后的0点
-      return !(obj.startDate > future0);
-    } else {
-      return false;
-    }
-  };
+
+  // 分组
+  // 属于今天分组：未删除，且开始时间在今天0点~明天0点（或结束时间/完成时间在这个范围）
   obj.belongToday = function() {
+    const today0 = moment().startOf("day");
+    const tomorrow0 = moment()
+      .startOf("day")
+      .add(1, "days");
     return (
       !obj.isDeleted &&
-      (obj.isExpired() || obj.isFinishedToday() || obj.isGoingToday())
+      ((obj.endDate._isValid &&
+        obj.endDate >= today0 &&
+        obj.endDate < tomorrow0) ||
+        (obj.startDate._isValid &&
+          obj.startDate >= today0 &&
+          obj.startDate < tomorrow0) ||
+        (obj.finishDate._isValid &&
+          obj.finishDate >= today0 &&
+          obj.finishDate < tomorrow0))
     );
   };
+  // 属于最近分组：未删除，且开始时间在今天0点~7天后的0点（或结束时间/完成时间在这个范围）
   obj.belongRecent = function() {
+    const today0 = moment().startOf("day");
+    const future0 = moment()
+      .startOf("day")
+      .add(7, "days");
     return (
       !obj.isDeleted &&
-      (obj.isExpired() || obj.isFinishedRecent() || obj.isGoingRecent())
+      ((obj.endDate._isValid &&
+        obj.endDate >= today0 &&
+        obj.endDate < future0) ||
+        (obj.startDate._isValid &&
+          obj.startDate >= today0 &&
+          obj.startDate < future0) ||
+        (obj.finishDate._isValid &&
+          obj.finishDate >= today0 &&
+          obj.finishDate < future0))
     );
   };
+  // 属于收藏分组：未删除，且状态为收藏
   obj.belongStar = function() {
     return !obj.isDeleted && obj.star;
   };
+  // 属于全部分组：未删除
+  obj.belongAll = function() {
+    return !obj.isDeleted;
+  };
+  // 属于已完成分组：未删除，且状态为已完成
   obj.belongFinished = function() {
     return !obj.isDeleted && obj.isFinished();
+  };
+  // 属于已删除分组：已删除
+  obj.belongTrash = function() {
+    return obj.isDeleted;
   };
 
   return obj;

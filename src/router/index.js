@@ -56,22 +56,7 @@ const routes = [
       {
         path: "/plan",
         name: "plan",
-        component: () =>
-          import(/* webpackChunkName: "plan" */ "../layouts/PlanLayout"),
-        children: [
-          // 重定向
-          {
-            path: "/plan",
-            redirect: "/plan/today"
-          },
-          // 今日计划
-          {
-            path: "/plan/*",
-            name: "plan today",
-            component: () =>
-              import(/* webpackChunkName: "plan" */ "../views/Plan")
-          }
-        ]
+        component: () => import(/* webpackChunkName: "plan" */ "../views/Plan")
       },
       // 帮助
       {

@@ -1,5 +1,5 @@
 <template>
-  <div class="plan-page" v-if="plan.id">
+  <div class="plan-page" v-if="plan">
     <!-- 标题 -->
     <div class="detail-row">
       <a-checkbox class="taks-icon" v-model="finish" />
@@ -99,8 +99,6 @@
 </template>
 
 <script>
-import { mapActions } from "vuex";
-
 import PlanTag from "./Items/Tag";
 import PlanTime from "./Items/Time";
 import PlanAlarm from "./Items/Alarm";
@@ -124,6 +122,7 @@ export default {
   data() {
     const publicPath = process.env.BASE_URL;
     return {
+      plan: null, // 当前计划
       publicPath: publicPath, // public 文件夹的位置
       starImage: publicPath + "icons/" + "收藏.png",
       unstarImage: publicPath + "icons/" + "未收藏.png",
@@ -147,88 +146,62 @@ export default {
   methods: {
     // 更新计划
     updatePlan(data) {
-      this.$request({
-        url: `/api/plans/${this.plan.id}`,
-        method: "put",
-        data: data
-      }).then(res => {
-        // 更新列表里的数据
-        let plans = [...this.$store.state.planDataFull];
-        let targets = plans.filter(item => item.id === res.data.id);
-        let target = targets.length === 1 ? targets[0] : undefined;
-
-        if (target) {
-          console.log("更新前", target);
-          console.log("更新内容", data);
-          for (let key in data) {
-            target[key] = res.data[key];
-          }
-          target = this.$Plan(target);
-          console.log("更新后", target);
-          this.$store.state.planDataFull = [
-            ...plans.filter(i => i.id !== res.data.id),
-            target
-          ];
-        } else {
-          console.log(`未找到目标计划: ${this.plan.id}`);
-        }
-      });
+      this.$store.dispatch("updatePlan", this.plan.id, data);
     },
     // 收藏/取消收藏
     handleStar() {
-      console.log(this.plan.star ? "取消收藏" : "收藏");
       this.updatePlan({ star: !this.plan.star });
     },
     // 删除任务
     handleDelete() {
-      this.$request({
-        url: `/api/plans/${this.plan.id}`,
-        method: "delete"
-      }).then(res => {
-        this.$store.state.planDataFull = res.data.map(
-          plan => new this.$Plan(plan)
-        );
-        console.log("成功删除并更新数据");
-      });
+      this.$store.dispatch("deletePlan", this.plan.id);
     },
-    ...mapActions(["getTags"])
-  },
-  mounted() {
-    this.getTags();
-  },
-  computed: {
-    plan() {
-      // 看看选中的计划是否在当前页，如果不在，则不显示
-      let currentPlan = this.$store.state.currentPlan;
-      let targets = this.$store.state.currentPlans.filter(
-        plan => plan.id === currentPlan.id
-      );
-      let target = targets.length === 1 ? targets[0] : {};
-      console.log("5 在详情页成功获取到最新数据");
-      return Object.create(target); // 复制对象
+    // 获取当前计划（）
+    setData() {
+      let plans = [...this.$store.state.currentPlans];
+      let plan =
+        plans[plans.map(i => i.id).indexOf(this.$store.state.currentPlanId)];
+
+      if (plan) {
+        this.plan = Object.create(plan);
+        this.level = plan.level;
+        this.finish = plan.isFinished();
+        this.title = plan.title;
+        this.start = plan.start;
+        this.time = plan.time;
+        this.tags = plan.tags;
+        this.alarm = plan.alarm;
+        this.position = plan.position;
+        this.subTasks = plan.subTasks;
+        this.description = plan.description;
+      } else {
+        console.log("3 当前计划列表里没有对应的计划");
+        this.plan = null;
+      }
     }
   },
   watch: {
-    plan(to) {
-      if (!to.id) {
-        return;
-      }
-      console.log("6 计划数据发生了变化，重新赋值");
-      this.refresh = false;
-      this.$nextTick(() => {
-        this.refresh = true;
-      });
+    "$store.state.currentPlans": function(to) {
+      if (to) {
+        this.setData();
+        console.log("3 成功更新当前计划");
 
-      this.level = to.level;
-      this.finish = to.finish;
-      this.title = to.title;
-      this.start = to.start;
-      this.time = to.time;
-      this.tags = to.tags;
-      this.alarm = to.alarm;
-      this.position = to.position;
-      this.subTasks = to.subTasks;
-      this.description = to.description;
+        this.refresh = false;
+        this.$nextTick(() => {
+          this.refresh = true;
+        });
+      }
+    },
+    "$store.state.currentPlanId": function(to) {
+      if (to) {
+        this.setData();
+        console.log("3 打开新的计划");
+
+        this.refresh = false;
+        this.$nextTick(() => {
+          this.refresh = true;
+        });
+      }
     },
     tags(to) {
       let idOld = this.plan.tags.map(i => i.id);
@@ -302,7 +275,7 @@ export default {
       }
     },
     finish(to) {
-      if (this.plan.finish !== to) {
+      if (this.plan.isFinished() !== to) {
         console.log("完成状态数据发生了变化，推送到后端");
         this.updatePlan({ status: to ? 1 : 0 });
       } else {

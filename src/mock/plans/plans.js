@@ -1,11 +1,11 @@
 import HTTPERROR from "@/mock/func/httpError";
-import dateFormat from "@/utils/dateFormat";
 import random from "@/mock/func/random";
+import moment from "moment";
 
 let Mock = require("mockjs");
 
-let dayMS = 60 * 60 * 24 * 1000; //一天的毫秒数
-let monthMS = dayMS * 30; //一个月的毫秒数
+let dayMS = 60 * 24; //一天的分钟数
+let monthMS = dayMS * 30; //一个月的分钟数
 let levels = ["high", "medium", "low", "none"];
 
 // 创建标签
@@ -31,34 +31,43 @@ function getTagById(id) {
 
 // 由于 mockjs 生成的时间无法控制，所以单独写一个方法，用以生成一个时间
 // 生成的时间范围：上个月的此刻~下个月的此刻
-// 允许在生成的时间上加一个偏差（单位是毫秒）
+// 允许在生成的时间上加一个偏差（单位是分钟）
 function randomDate(seed = 2020, bias = 0) {
   let deltaMS = random.rand(monthMS, seed);
   let symbol = random.rnd(seed) >= 0.5 ? 1 : -1;
-  let time = new Date().getTime() + symbol * deltaMS + bias;
-  return new Date(time);
+  return moment().add(symbol * deltaMS + bias, "minutes");
 }
 
-// 随机生成一个日期字符串对象，或什么都没有
+// 随机生成时间对象
 function createTime() {
   let time = {
     allDay: null,
-    start: "",
-    end: ""
+    start: null,
+    end: null,
+    finish: null,
+    status: 0 // 完成状态 : 1 - 已完成；0 - 未完成
   };
 
-  if (Mock.mock("@boolean")) {
+  if (Math.random() > 0.2) {
     let seed = Mock.mock("@integer");
 
     time.allDay = Mock.mock("@boolean"); // 是否是全天的任务，boolean
-    time.start = dateFormat("Y-mm-dd HH:MM:SS", randomDate(seed)); // 开始时间
+    time.start = randomDate(seed).format("Y-MM-DD HH:mm:SS"); // 开始时间
 
-    // 随机添加结束时间
-    if (Mock.mock("@boolean")) {
-      time.end = dateFormat(
-        "Y-mm-dd HH:MM:SS",
-        randomDate(seed, Mock.mock(`@integer(1,${3 * dayMS})`))
+    // 随机添加3天之内的结束时间
+    if (Math.random() > 0.2) {
+      time.end = randomDate(seed, Mock.mock(`@integer(1,${3 * dayMS})`)).format(
+        "Y-MM-DD HH:mm:SS"
       );
+    }
+
+    // 随机添加任务状态和结束时间
+    if (Math.random() > 0.2) {
+      time.finish = randomDate(
+        seed,
+        Mock.mock(`@integer(${-5 * dayMS},${5 * dayMS})`)
+      ).format("Y-MM-DD HH:mm:SS");
+      time.status = 1;
     }
   }
   return time;
@@ -112,7 +121,6 @@ function createPlans() {
       title: Mock.mock("@ctitle(1, 30)"), // 标题，1~50字
       star: Mock.mock("@boolean"), // 是否收藏，boolean
       typeId: "life",
-      status: Mock.mock("@integer(0,1)"), // 完成状态 : 1 - 已完成；0 - 未完成
       isDeleted: Mock.mock("@boolean"), // 是否被删除
       position: Mock.mock("@city"), // 国内随机城市
       level: Mock.mock(`@pick(${levels})`), // 优先级
