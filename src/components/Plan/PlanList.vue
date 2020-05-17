@@ -238,13 +238,13 @@ export default {
         if (b.startDate._isValid) {
           return a.startDate - b.startDate;
         } else {
-          return false;
+          return -1;
         }
       } else {
         if (b.startDate._isValid) {
-          return true;
+          return 1;
         } else {
-          return false;
+          return -1;
         }
       }
     },
