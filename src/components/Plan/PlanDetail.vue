@@ -40,9 +40,9 @@
               @click="e => e.preventDefault()"
             />
             <a-menu slot="overlay" style="min-width:100px">
-              <a-menu-item key="1" @click="handleDelete">
+              <a-menu-item key="1" @click="handleDeleteOrRecover">
                 <a-icon type="delete" />
-                删除
+                {{ plan.isDeleted ? "恢复删除" : "删除" }}
               </a-menu-item>
             </a-menu>
           </a-dropdown>
@@ -152,9 +152,9 @@ export default {
     handleStar() {
       this.updatePlan({ star: !this.plan.star });
     },
-    // 删除任务
-    handleDelete() {
-      this.$store.dispatch("deletePlan", this.plan.id);
+    // 删除/恢复任务
+    handleDeleteOrRecover() {
+      this.updatePlan({ isDeleted: !this.plan.isDeleted });
     },
     // 获取当前计划（）
     setData() {
