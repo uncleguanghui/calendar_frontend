@@ -144,16 +144,15 @@ export default {
         // 今天是几月第几个周期
         var weekdayNumString = this.weekdayNum(dayRenderInfo.date);
         // 格式化后的公历日期
-        var dateString = this.$dateFormat("mm-dd", dayRenderInfo.date);
-        var dateFullString = this.$dateFormat("Y-mm-dd", dayRenderInfo.date);
+        var dateString = this.$moment(dayRenderInfo.date).format("MM-DD");
+        var dateFullString = this.$moment(dayRenderInfo.date).format("Y-MM-DD");
         // 农历
         var lunarDate = chineseLunar.solarToLunar(dayRenderInfo.date);
         var lunarString = chineseLunar.format(lunarDate, "D");
         // 格式化后的农历
-        var lunarDateString = this.$dateFormat(
-          "mm-dd",
+        var lunarDateString = this.$moment(
           new Date(2020, lunarDate.month - 1, lunarDate.day)
-        );
+        ).format("MM-DD");
 
         // 显示的节日
         var solarTerm = (this.solarTerms[

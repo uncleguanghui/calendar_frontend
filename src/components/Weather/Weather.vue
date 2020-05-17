@@ -58,8 +58,8 @@ export default {
   methods: {
     // 天气格式化
     getWeatherData() {
-      const todayString = this.$dateFormat("Y-mm-dd", new Date());
-      const dateString = this.$dateFormat("Y-mm-dd", this.date);
+      const todayString = this.$moment(new Date()).format("Y-MM-DD");
+      const dateString = this.$moment(this.date).format("Y-MM-DD");
 
       this.$request({
         url: "/api/weather/5days",

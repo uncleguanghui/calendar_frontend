@@ -394,7 +394,7 @@ export default {
               ", " +
               (new Date(date).toDateString() === new Date().toDateString()
                 ? "今天"
-                : this.$dateFormat("m月d日", new Date(date))),
+                : this.$moment(date).format("M月D日")),
             data: datePlans[date]
           };
         });
