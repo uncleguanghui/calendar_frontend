@@ -188,9 +188,9 @@ export default {
     input() {
       let s = "";
       if (this.allDay !== null && this.startDate && this.startDate._isValid) {
-        s += this.allDay + "__" + this.startDate.format("Y-MM-DD HH:mm:SS");
+        s += this.allDay + "__" + this.startDate.format("Y-MM-DD HH:mm:ss");
         if (this.endDate && this.endDate._isValid) {
-          s += "__" + this.endDate.format("Y-MM-DD HH:mm:SS");
+          s += "__" + this.endDate.format("Y-MM-DD HH:mm:ss");
         }
       }
       return s;

@@ -1,5 +1,4 @@
 import HTTPERROR from "@/mock/func/httpError";
-import random from "@/mock/func/random";
 import moment from "moment";
 
 let Mock = require("mockjs");
@@ -29,15 +28,6 @@ function getTagById(id) {
   return targets.length === 1 ? targets[0] : "";
 }
 
-// 由于 mockjs 生成的时间无法控制，所以单独写一个方法，用以生成一个时间
-// 生成的时间范围：上个月的此刻~下个月的此刻
-// 允许在生成的时间上加一个偏差（单位是分钟）
-function randomDate(seed = 2020, bias = 0) {
-  let deltaMS = random.rand(monthMS, seed);
-  let symbol = random.rnd(seed) >= 0.5 ? 1 : -1;
-  return moment().add(symbol * deltaMS + bias, "minutes");
-}
-
 // 随机生成时间对象
 function createTime() {
   let time = {
@@ -49,24 +39,27 @@ function createTime() {
   };
 
   if (Math.random() > 0.2) {
-    let seed = Mock.mock("@integer");
+    let symbol = Math.random() >= 0.5 ? 1 : -1;
+    let deltaMS = Math.ceil(Math.random() * monthMS);
+    let start = moment().add(symbol * deltaMS, "minutes"); // 随机生成的时间范围：上个月的此刻~下个月的此刻
+    let end = start
+      .clone()
+      .add(Mock.mock(`@integer(1,${3 * dayMS})`), "minutes");
+    let finish = start
+      .clone()
+      .add(Mock.mock(`@integer(${-5 * dayMS},${5 * dayMS})`), "minutes");
 
     time.allDay = Mock.mock("@boolean"); // 是否是全天的任务，boolean
-    time.start = randomDate(seed).format("Y-MM-DD HH:mm:SS"); // 开始时间
+    time.start = start.format("Y-MM-DD HH:mm:ss"); // 开始时间
 
     // 随机添加3天之内的结束时间
     if (Math.random() > 0.2) {
-      time.end = randomDate(seed, Mock.mock(`@integer(1,${3 * dayMS})`)).format(
-        "Y-MM-DD HH:mm:SS"
-      );
+      time.end = end.format("Y-MM-DD HH:mm:ss");
     }
 
     // 随机添加任务状态和结束时间
     if (Math.random() > 0.2) {
-      time.finish = randomDate(
-        seed,
-        Mock.mock(`@integer(${-5 * dayMS},${5 * dayMS})`)
-      ).format("Y-MM-DD HH:mm:SS");
+      time.finish = finish.format("Y-MM-DD HH:mm:ss");
       time.status = 1;
     }
   }
