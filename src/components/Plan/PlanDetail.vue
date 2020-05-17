@@ -146,7 +146,7 @@ export default {
   methods: {
     // 更新计划
     updatePlan(data) {
-      this.$store.dispatch("updatePlan", this.plan.id, data);
+      this.$store.dispatch("updatePlan", { id: this.plan.id, data: data });
     },
     // 收藏/取消收藏
     handleStar() {

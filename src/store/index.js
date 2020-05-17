@@ -212,7 +212,7 @@ export default new Vuex.Store({
       });
     },
     // 更新计划
-    UPDATEPLAN(state, id, data) {
+    UPDATEPLAN(state, { id, data }) {
       console.log("3 更新计划内容", data);
       request({
         url: `/api/plans/${id}`,
@@ -269,8 +269,8 @@ export default new Vuex.Store({
     getPlans({ commit }) {
       commit("GETPLANS");
     },
-    updatePlan({ commit }, id, data) {
-      commit("UPDATEPLAN", id, data);
+    updatePlan({ commit }, value) {
+      commit("UPDATEPLAN", value);
     },
     deletePlan({ commit }, id) {
       commit("DELETEPLAN", id);

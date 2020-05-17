@@ -80,7 +80,7 @@ export default {
 
       // 更新当前列表的数据
       let key = this.selectedTags[0] || this.selectedKeys[0];
-      this.refreshCurrentPlans(key);
+      this.refreshCurrentPlans({ key });
     },
     selectedKeys(to) {
       this.$store.dispatch("setCurrentGroupKey", to.length ? to[0] : "");
@@ -175,7 +175,7 @@ export default {
           break;
       }
       this.$store.dispatch("setCurrentPlans", [...currentPlans]);
-      console.log("2 成功更新计划列表页");
+      console.log("2 成功更新计划列表页", currentPlans);
     }
   }
 };
