@@ -1,36 +1,34 @@
 <template>
-  <div class="page">
-    <a-row type="flex" justify="space-around">
-      <a-col :span="4">
-        <div class="logo">
-          Logo
-        </div>
-      </a-col>
-      <a-col :span="16">
-        <a-menu
-          theme="light"
-          mode="horizontal"
-          :selectedKeys="selectedKeys"
-          :style="{
-            lineHeight: '62px',
-            textAlign: 'left',
-            background: '#fff0'
-          }"
-          @click="clickHandle"
-        >
-          <a-menu-item :key="item.key" v-for="item in menuItems">
-            {{ item.name }}
-          </a-menu-item>
-        </a-menu>
-      </a-col>
-      <a-col :span="2">通知</a-col>
-      <a-col :span="2">用户</a-col>
-    </a-row>
+  <div class="header">
+    <div class="left">
+      <div class="logo">
+        Logo
+      </div>
+      <a-menu
+        class="menu"
+        theme="light"
+        mode="horizontal"
+        :selectedKeys="selectedKeys"
+        @click="clickHandle"
+      >
+        <a-menu-item :key="item.key" v-for="item in menuItems">
+          {{ item.name }}
+        </a-menu-item>
+      </a-menu>
+    </div>
+    <div class="right">
+      <magic-add style="margin-right: 40px" />
+      <span style="padding-right: 40px">通知</span>
+      <span>用户</span>
+    </div>
   </div>
 </template>
 
 <script>
+import MagicAdd from "@/components/MagicAdd/MagicAdd";
+
 export default {
+  components: { MagicAdd },
   data() {
     return {
       menuItems: [
@@ -65,4 +63,39 @@ export default {
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+.header {
+  text-align: left;
+  display: flex;
+  display: -webkit-flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.logo {
+  display: inline-block;
+  width: 150px;
+}
+
+@media screen and (max-width: 500px) {
+  .logo {
+    display: none;
+  }
+}
+
+.menu {
+  display: inline-block;
+  width: calc(100vw - 450px);
+  line-height: 62px;
+  text-align: left;
+  background: #fff0;
+}
+
+.right {
+  /* flex-grow: 1; */
+  /* display: inline-block; */
+  position: absolute;
+  right: 0;
+  width: 300px;
+}
+</style>
