@@ -170,7 +170,6 @@ export default {
             currentPlans = this.plans.filter(
               i => i.tags.map(i => i.id).indexOf(key) > -1
             );
-            console.log(key, currentPlans);
           }
           break;
       }

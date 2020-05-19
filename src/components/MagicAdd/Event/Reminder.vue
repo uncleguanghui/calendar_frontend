@@ -2,6 +2,7 @@
   <a-modal
     centered
     :destroyOnClose="false"
+    :maskClosable="false"
     title="提醒"
     okText="确定"
     width="500px"

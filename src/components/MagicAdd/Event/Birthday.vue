@@ -2,6 +2,7 @@
   <a-modal
     centered
     :destroyOnClose="false"
+    :maskClosable="false"
     title="生日"
     okText="确定"
     width="400px"
@@ -61,7 +62,6 @@
       </a-form-item>
       <a-form-item label="提醒" v-bind="formItemLayout">
         <a-select
-          mode="multiple"
           v-decorator="[
             'alarm',
             {
@@ -147,22 +147,12 @@ export default {
     // 到下次提醒的天数（能设置为不提醒）
     // 如果设置的提醒时间大于等于此刻，则不返回
     nextAlarmDays() {
-      if (this.nextBrithday && this.selectAlarm.length >= 1) {
+      if (this.nextBrithday && this.selectAlarm !== "none") {
         let today = this.$moment().startOf("day"); // 今天
-        let alarmDate = null;
-        let days = this.selectAlarm
-          .map(i => parseInt(i.replace("days", "")))
-          .sort((a, b) => b - a); // 提前提醒的天数列表
-
-        for (let day of days) {
-          let t = this.nextBrithday.clone().subtract(day, "days");
-          if (t >= today) {
-            alarmDate = t;
-            break;
-          }
-        }
-
-        if (alarmDate) {
+        let alarmDate = this.nextCommemoration
+          .clone()
+          .subtract(parseInt(this.selectAlarm.replace("days", "")), "days"); // 提醒日期
+        if (alarmDate >= today) {
           return alarmDate.diff(today, "days");
         }
       }
@@ -177,9 +167,10 @@ export default {
         wrapperCol: { span: 16 }
       },
       selectDate: null, // 选择的日期
-      selectAlarm: ["7days"], // 设置的提醒
+      selectAlarm: "7days", // 设置的提醒
       newIndex: 0, // 新提醒的序号
       alarmItems: [
+        { value: "none", content: "不提醒" },
         { value: "0days", content: "当天 ( 8:00 )" },
         { value: "1days", content: "提前1天 ( 8:00 )" },
         { value: "3days", content: "提前3天 ( 8:00 )" },

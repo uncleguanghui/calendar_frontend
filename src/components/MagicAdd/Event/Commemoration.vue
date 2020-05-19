@@ -2,6 +2,7 @@
   <a-modal
     centered
     :destroyOnClose="false"
+    :maskClosable="false"
     title="纪念"
     okText="确定"
     width="500px"
@@ -67,7 +68,6 @@
       </a-form-item>
       <a-form-item label="提醒" v-bind="formItemLayout">
         <a-select
-          mode="multiple"
           v-decorator="[
             'alarm',
             {
@@ -165,22 +165,12 @@ export default {
     },
     // 到下个提醒日的天数
     nextAlarmDays() {
-      if (this.nextCommemoration && this.selectAlarm.length >= 1) {
+      if (this.nextCommemoration && this.selectAlarm !== "none") {
         let today = this.$moment().startOf("day"); // 今天
-        let alarmDate = null;
-        let days = this.selectAlarm
-          .map(i => parseInt(i.replace("days", "")))
-          .sort((a, b) => b - a); // 提前提醒的天数列表
-
-        for (let day of days) {
-          let t = this.nextCommemoration.clone().subtract(day, "days");
-          if (t >= today) {
-            alarmDate = t;
-            break;
-          }
-        }
-
-        if (alarmDate) {
+        let alarmDate = this.nextCommemoration
+          .clone()
+          .subtract(parseInt(this.selectAlarm.replace("days", "")), "days"); // 提醒日期
+        if (alarmDate >= today) {
           return alarmDate.diff(today, "days");
         }
       }
@@ -196,13 +186,14 @@ export default {
       },
       selectDate: null, // 纪念日 moment
       selectRepeat: "1year", // 重复的选项
-      selectAlarm: ["7days"], // 提醒的选项
+      selectAlarm: "7days", // 提醒的选项
       repeatItems: [
         { value: "none", content: "不重复" },
         { value: "1month", content: "每月" },
         { value: "1year", content: "每年" }
       ],
       alarmItems: [
+        { value: "none", content: "不提醒" },
         { value: "0days", content: "当天 ( 8:00 )" },
         { value: "1days", content: "提前1天 ( 8:00 )" },
         { value: "3days", content: "提前3天 ( 8:00 )" },

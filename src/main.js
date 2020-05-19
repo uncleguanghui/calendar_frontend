@@ -80,6 +80,7 @@ Vue.use(VueClipboard);
 
 Vue.prototype.$message = Message;
 Vue.prototype.$notification = Notification;
+Vue.prototype.$Modal = Modal; // 使用 Modal 来实现信息提示
 Vue.prototype.$moment = moment;
 Vue.prototype.$axios = axios;
 Vue.prototype.$request = request;

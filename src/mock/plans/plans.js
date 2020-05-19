@@ -5,7 +5,8 @@ let Mock = require("mockjs");
 
 let dayMS = 60 * 24; //一天的分钟数
 let monthMS = dayMS * 30; //一个月的分钟数
-let levels = ["high", "medium", "low", "none"];
+let levels = ["high", "medium", "low", "none"]; // 优先级
+let repeat = ["day", "week", "month", "year", "none"]; // 重复
 
 // 创建标签
 function createTags() {
@@ -117,6 +118,7 @@ function createPlans() {
       isDeleted: Mock.mock("@boolean"), // 是否被删除
       position: Mock.mock("@city"), // 国内随机城市
       level: Mock.mock(`@pick(${levels})`), // 优先级
+      repeat: Mock.mock(`@pick(${repeat})`), // 重复
       subTasks: createSubTasks(), // 子任务
       tags: Mock.Random.shuffle(tags).slice(
         Mock.mock(`@integer(0,${tags.length})`)
