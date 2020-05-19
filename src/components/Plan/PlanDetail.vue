@@ -263,8 +263,8 @@ export default {
         console.log("时间数据发生了变化，推送到后端");
         let res = to.split("__");
         let allDay = res.length > 1 ? res[0] === "true" : null;
-        let start = res.length > 1 ? res[1] : "";
-        let end = res.length > 2 ? res[2] : "";
+        let start = res.length > 1 ? res[1] : null;
+        let end = res.length > 2 ? res[2] : null;
         this.updatePlan({
           allDay: allDay,
           start: start,

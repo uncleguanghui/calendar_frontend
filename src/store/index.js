@@ -2,6 +2,7 @@ import Vue from "vue";
 import Vuex from "vuex";
 import request from "@/utils/request";
 import Plan from "@/utils/planObj";
+import { Notification } from "ant-design-vue";
 
 Vue.use(Vuex);
 
@@ -203,7 +204,7 @@ export default new Vuex.Store({
     },
     // 获取当前所有计划
     GETPLANS(state) {
-      request({
+      return request({
         url: "/api/plans",
         method: "get"
       }).then(res => {
@@ -214,7 +215,7 @@ export default new Vuex.Store({
     // 更新计划
     UPDATEPLAN(state, { id, data }) {
       console.log("3 更新计划内容", data);
-      request({
+      return request({
         url: `/api/plans/${id}`,
         method: "put",
         data: data
@@ -238,42 +239,85 @@ export default new Vuex.Store({
     },
     // 删除计划
     DELETEPLAN(state, id) {
-      request({
+      return request({
         url: `/api/plans/${id}`,
         method: "delete"
       }).then(res => {
         state.planDataFull = res.data.map(plan => new Plan(plan));
         console.log("3 删除单个计划，并更新所有计划数据");
       });
+    },
+    // 创建一个计划
+    CREATEPLAN(state, data) {
+      return request({
+        url: `/api/plans`,
+        method: "post",
+        data: data
+      }).then(res => {
+        // 保存新数据
+        let oldData = [...state.planDataFull];
+        let newData = res.data.map(plan => new Plan(plan));
+        state.planDataFull = newData;
+
+        // 如果当前没有打开的计划，则打开新计划
+        // 如果新计划不属于当前页，则提示
+        if (!state.currentPlanId) {
+          // 找到创建的计划
+          let newPlan = newData.filter(
+            i => oldData.map(j => j.id).indexOf(i.id) === -1
+          );
+          newPlan = newPlan.length === 1 ? newPlan[0] : undefined;
+          if (newPlan) {
+            // 设置当前计划ID
+
+            // 看当前计划是否会显示在当前页
+            if (
+              (state.currentGroupKey === "today" && !newPlan.belongToday()) ||
+              (state.currentGroupKey === "recent" && !newPlan.belongRecent())
+            ) {
+              Notification.success({ message: "添加新计划到【全部】" });
+              console.log(`2 创建一个计划，并提示`);
+            } else {
+              state.currentPlanId = newPlan.id;
+              console.log(`2 创建一个计划，并打开`);
+            }
+          }
+        } else {
+          console.log(`2 创建一个计划`);
+        }
+      });
     }
   },
   actions: {
     getTags({ commit }) {
-      commit("GETTAGS");
+      return commit("GETTAGS");
     },
     createTag({ commit }, title) {
-      commit("CREATETAG", title);
+      return commit("CREATETAG", title);
     },
     updateTag({ commit }, tag) {
-      commit("UPDATETAG", tag);
+      return commit("UPDATETAG", tag);
     },
     setCurrentPlans({ commit }, plans) {
-      commit("SETCURRENTPLANS", plans);
+      return commit("SETCURRENTPLANS", plans);
     },
     setCurrentPlanId({ commit }, id) {
-      commit("SETCURRENTPLANID", id);
+      return commit("SETCURRENTPLANID", id);
     },
     setCurrentGroupKey({ commit }, key) {
-      commit("SETCURRENTGROUPKEY", key);
+      return commit("SETCURRENTGROUPKEY", key);
     },
     getPlans({ commit }) {
-      commit("GETPLANS");
+      return commit("GETPLANS");
     },
     updatePlan({ commit }, value) {
-      commit("UPDATEPLAN", value);
+      return commit("UPDATEPLAN", value);
     },
     deletePlan({ commit }, id) {
-      commit("DELETEPLAN", id);
+      return commit("DELETEPLAN", id);
+    },
+    createPlan({ commit }, data) {
+      return commit("CREATEPLAN", data);
     }
   },
   modules: {}

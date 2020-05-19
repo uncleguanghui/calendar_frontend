@@ -1,9 +1,19 @@
 <template>
   <a-dropdown :trigger="['click']" v-model="visible">
-    <span v-if="timeString" class="time-string">
-      {{ timeString }}
+    <span style="cursor:pointer">
+      <span v-if="showIcon">
+        <a-tooltip title="设置时间" trigger="hover" placement="top">
+          <a-icon type="clock-circle" v-if="timeString" style="color:#00bcbc" />
+          <a-icon type="clock-circle" v-else />
+        </a-tooltip>
+      </span>
+      <span v-else>
+        <span v-if="timeString" class="time-string">
+          {{ timeString }}
+        </span>
+        <span v-else style="color:#b3b3b3">设置时间</span>
+      </span>
     </span>
-    <span v-else style="color:#b3b3b3">设置时间</span>
     <div slot="overlay" class="container">
       <div>
         <div>
@@ -141,7 +151,11 @@
 <script>
 export default {
   props: {
-    value: String
+    value: String,
+    showIcon: {
+      type: Boolean,
+      default: false // 是显示文字还是显示icon，默认显示文字
+    }
   },
   data() {
     // 这里 value 值的含义，可以看 src/utils/planObj.js 里的 obj.time 部分

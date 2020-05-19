@@ -2,7 +2,7 @@
   <div :style="{ textAlign: 'left' }">
     <div :style="{ padding: '15px', minHeight: '70px' }">
       <!-- 标题 -->
-      <span :style="{ fontSize: '32px' }">{{ title }}</span>
+      <span :style="{ fontSize: '26px' }">{{ title }}</span>
       <!-- 右上角功能区 -->
       <div :style="{ float: 'right', marginTop: '12px' }">
         <!-- 排序下拉框（当且仅当列表页有数据时显示） -->
@@ -82,6 +82,13 @@
         </a-dropdown>
       </div>
     </div>
+    <!-- 创建计划 -->
+    <div
+      style="padding: 0 12px"
+      v-if="showCreationGroupKey.indexOf(groupKey) > -1"
+    >
+      <plan-creation-input style="width:100%" />
+    </div>
     <!-- 计划列表 -->
     <div class="page" v-if="groups.length">
       <a-collapse
@@ -152,9 +159,10 @@
 
 <script>
 import PlanLevel from "./Items/Level";
+import PlanCreationInput from "./Items/CreationInput";
 
 export default {
-  components: { PlanLevel },
+  components: { PlanLevel, PlanCreationInput },
   data() {
     const publicPath = process.env.BASE_URL;
     let defaultActiveKey = [
@@ -167,6 +175,8 @@ export default {
     ]; // 默认展开的列，默认不展开已完成和已删除列
     return {
       groups: [], // 分组后的计划
+      groupKey: "", // 当前选中的分组
+      showCreationGroupKey: ["today", "recent", "all"], // 要显示创建计划 input 的分组
       dayNames: ["日", "一", "二", "三", "四", "五", "六"],
       defaultActiveKey: defaultActiveKey, // 默认展开的 key
       activeKey: defaultActiveKey, // 当前展开的 key
@@ -186,6 +196,7 @@ export default {
       let planGroupMenu = this.$store.state.planGroupMenu;
       let menu = planGroupMenu[planGroupMenu.map(i => i.key).indexOf(to)];
       this.title = menu ? menu.name : "";
+      this.groupKey = to;
     },
     "$store.state.currentPlans": function() {
       this.refreshCurrentGroups();

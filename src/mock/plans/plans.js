@@ -8,6 +8,22 @@ let monthMS = dayMS * 30; //一个月的分钟数
 let levels = ["high", "medium", "low", "none"]; // 优先级
 let repeat = ["day", "week", "month", "year", "none"]; // 重复
 
+// 解析标签（主要是赋予id和颜色，以及去掉不在标签列表中的标签）
+// function parseTags(tags) {
+//   let tags_ = [];
+//   for (let tag of tags) {
+//     let newTag = {
+//       id: typeof tag.id === "string" ? tag.id : Mock.mock("@id"),
+//       title: typeof tag.title === "string" ? tag.title : "", // 标题
+//       color: typeof tag.color === "string" ? tag.color : "#40a9ff" // 背景色，默认蓝色
+//     };
+//     tags_.push(newTag);
+//   }
+//   // 过滤不存在的标签
+//   tags_ = tags_.filter(i => tags.map(j => j.id).indexOf(i.id) > -1);
+//   return tags_;
+// }
+
 // 创建标签
 function createTags() {
   let tags_ = [];
@@ -67,6 +83,28 @@ function createTime() {
   return time;
 }
 
+// 解析任务（主要是赋予key，以及重置 index）
+function parseSubTasks(SubTasks) {
+  let tasks = [];
+  for (let task of SubTasks) {
+    let newTask = {
+      key: typeof task.key === "string" ? task.key : Mock.mock("@id"),
+      index: typeof task.index === "number" ? task.index : 9999999, // 任务的序号，如果没有序号，则排序后会放在最后面
+      title: typeof task.title === "string" ? task.title : "", // 任务的标题，默认为空
+      status: typeof task.status === "boolean" ? task.status : false // 完成状态，默认未完成
+    };
+    tasks.push(newTask);
+  }
+  // 重新排序并重置 index
+  tasks = tasks
+    .sort((a, b) => a.index - b.index)
+    .map((obj, index) => {
+      obj.index = index;
+      return obj;
+    });
+  return tasks;
+}
+
 // 创建子任务，或者没有子任务
 function createSubTasks() {
   let tasks = [];
@@ -105,32 +143,88 @@ function createAlarm() {
   }
 }
 
-// 创建计划
+// 解析计划对象
+function paresPlanObj(obj) {
+  return {
+    id: typeof obj.id === "string" ? obj.id : Mock.mock("@id"), // 计划ID
+    groupId: typeof obj.groupId === "string" ? obj.groupId : Mock.mock("@id"), //计划书ID
+    title: typeof obj.title === "string" ? obj.title : "", // 标题，1~50字，默认空
+    star: typeof obj.star === "boolean" ? obj.star : false, // 是否收藏，boolean，默认不收藏
+    typeId: "life",
+    isDeleted: typeof obj.isDeleted === "boolean" ? obj.isDeleted : false, // 是否被删除，默认不删除
+    position: typeof obj.position === "string" ? obj.position : "", // 国内随机城市，默认空
+    level:
+      typeof obj.level === "string" && levels.indexOf(obj.level) > -1
+        ? obj.level
+        : "none", // 优先级，默认无
+    repeat:
+      typeof obj.repeat === "string" && repeat.indexOf(obj.repeat) > -1
+        ? obj.repeat
+        : "none", // 重复，默认不重复
+    subTasks:
+      typeof obj.subTasks === "object" ? parseSubTasks(obj.subTasks) : [], // 子任务，若不为空则重新解析，默认为空
+    tags:
+      typeof obj.tags === "object"
+        ? obj.tags.map(id => getTagById(id)).filter(i => i)
+        : [], // 计划标签，若不为空则根据ID取出对应的标签，默认没有颜色
+    backgroundColor:
+      typeof obj.backgroundColor === "string" ? obj.backgroundColor : "", // 背景色，默认无
+    description: typeof obj.description === "string" ? obj.description : "", // 计划描述，1~20段，默认无
+    attachments: typeof obj.attachments === "object" ? obj.attachments : [], // 附件——图片，0~3张
+
+    // 提醒
+    advancedDays:
+      typeof obj.advancedDays === "number" ? obj.advancedDays : null, // 提前提醒的天数
+    alarmTime: typeof obj.alarmTime === "string" ? obj.alarmTime : "", // 提醒时间
+
+    // 时间
+    allDay: typeof obj.allDay === "boolean" ? obj.allDay : null, // 是否全天，默认无
+    start:
+      typeof obj.start === "string" && moment(obj.start)._isValid
+        ? obj.start
+        : null, // 开始日期
+    end:
+      typeof obj.end === "string" && moment(obj.end)._isValid ? obj.end : null, // 结束时间
+    finish:
+      typeof obj.finish === "string" && moment(obj.finish)._isValid
+        ? obj.finish
+        : null, // 完成时间
+    status: typeof obj.status === "number" ? obj.status : 0 // 完成状态，默认0-未完成
+  };
+}
+
+// 创建一个计划
+function createPlan() {
+  let plan = {
+    id: Mock.mock("@id"), // 计划ID
+    groupId: Mock.mock("@id"), //计划书ID
+    title: Mock.mock("@ctitle(1, 30)"), // 标题，1~50字
+    star: Mock.mock("@boolean"), // 是否收藏，boolean
+    typeId: "life",
+    isDeleted: Mock.mock("@boolean"), // 是否被删除
+    position: Mock.mock("@city"), // 国内随机城市
+    level: Mock.mock(`@pick(${levels})`), // 优先级
+    repeat: Mock.mock(`@pick(${repeat})`), // 重复
+    subTasks: createSubTasks(), // 子任务
+    tags: Mock.Random.shuffle(tags).slice(
+      Mock.mock(`@integer(0,${tags.length})`)
+    ), // 计划标签，生成一个子集
+    backgroundColor: Mock.mock("@color"), // 背景色
+    description: Mock.mock("@cparagraph(1, 20)"), // 计划描述，1~20段
+    attachments: Mock.mock({ "image|0-3": ["@image"] }).image // 附件——图片，0~3张
+  };
+  let time_ = createTime();
+  plan = Object.assign(plan, time_);
+  let alarm_ = createAlarm();
+  plan = Object.assign(plan, alarm_);
+  return plan;
+}
+
+// 创建一堆计划
 function createPlans() {
   let plans_ = [];
   for (let index = 0; index < Mock.mock("@integer(10, 30)"); index++) {
-    let plan_ = {
-      id: Mock.mock("@id"), // 计划ID
-      groupId: Mock.mock("@id"), //计划书ID
-      title: Mock.mock("@ctitle(1, 30)"), // 标题，1~50字
-      star: Mock.mock("@boolean"), // 是否收藏，boolean
-      typeId: "life",
-      isDeleted: Mock.mock("@boolean"), // 是否被删除
-      position: Mock.mock("@city"), // 国内随机城市
-      level: Mock.mock(`@pick(${levels})`), // 优先级
-      repeat: Mock.mock(`@pick(${repeat})`), // 重复
-      subTasks: createSubTasks(), // 子任务
-      tags: Mock.Random.shuffle(tags).slice(
-        Mock.mock(`@integer(0,${tags.length})`)
-      ), // 计划标签，生成一个子集
-      backgroundColor: Mock.mock("@color"), // 背景色
-      description: Mock.mock("@cparagraph(1, 20)"), // 计划描述，1~20段
-      attachments: Mock.mock({ "image|0-3": ["@image"] }).image // 附件——图片，0~3张
-    };
-    let time_ = createTime();
-    plan_ = Object.assign(plan_, time_);
-    let alarm_ = createAlarm();
-    plan_ = Object.assign(plan_, alarm_);
+    let plan_ = createPlan();
     plans_.push(plan_);
   }
   return plans_;
@@ -140,11 +234,7 @@ let plans = createPlans();
 // 添加一个计划
 function addPlan(planObj) {
   if (planObj) {
-    planObj.id = Mock.mock("@id");
-    planObj.groupId = Mock.mock("@id");
-
-    // 添加标签
-    plans = [planObj, ...plans];
+    plans = [paresPlanObj(planObj), ...plans];
   }
   return plans;
 }
@@ -183,6 +273,9 @@ function updatePlan(id, params) {
         if (key === "tags") {
           // key 是 tags 的话，只需传 id 列表
           target[key] = params[key].map(id => getTagById(id)).filter(i => i);
+        } else if (key === "subTasks") {
+          // key 是 subTasks 的话，重新解析
+          target[key] = parseSubTasks(params[key]);
         } else {
           target[key] = params[key];
         }
