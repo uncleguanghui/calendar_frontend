@@ -100,6 +100,56 @@
           天
         </span>
       </a-form-item>
+      <a-form-item label="特殊提醒" v-bind="formItemLayout">
+        <a-select
+          mode="multiple"
+          v-decorator="[
+            'specialAlarm',
+            {
+              initialValue: selectSpecial
+            }
+          ]"
+          style="width:100%;"
+          @change="
+            e => {
+              selectSpecial = e;
+            }
+          "
+        >
+          <a-select-opt-group
+            v-for="group in specialAlarmItems"
+            :key="group.label"
+          >
+            <span slot="label">
+              <a-icon :type="group.icon" />
+              {{ group.label }}
+            </span>
+            <a-select-option
+              v-for="item in group.children"
+              :value="item.value"
+              :key="item.value"
+            >
+              {{ item.content }}
+            </a-select-option>
+          </a-select-opt-group>
+        </a-select>
+        <span slot="extra" v-if="selectSpecial.length > 0">
+          <span v-if="nextSpecialDate">
+            距离最近的特殊纪念日
+            <span :style="{ color: '#ff7c7c' }">
+              {{ nextSpecialDate.title }}
+            </span>
+            还有
+            <span :style="{ color: '#ff7c7c' }">
+              {{ nextSpecialDate.diff }}
+            </span>
+            天
+          </span>
+          <span v-else>
+            这些特殊提醒日子都已经过去啦
+          </span>
+        </span>
+      </a-form-item>
       <a-form-item label="备注" v-bind="formItemLayout">
         <a-textarea
           autocomplete="off"
@@ -118,12 +168,50 @@
 </template>
 
 <script>
-// TODO: 对于重复项增加模板——对于爱情（增加第520天重复，1314天重复）；对于出生（增加第1个月重复，第100天重复）
 export default {
   props: {
     value: Boolean
   },
   computed: {
+    // 下一个特殊日子
+    nextSpecialDate() {
+      if (
+        this.selectDate &&
+        this.selectDate._isValid &&
+        this.selectSpecial &&
+        this.selectSpecial.length > 0
+      ) {
+        let today = this.$moment().startOf("day"); // 今天
+        let commemoration = this.selectDate.clone().startOf("day"); // 纪念日当天
+
+        // 添加还未到的特殊纪念日并排序
+        let dates = [];
+        for (let key of this.selectSpecial) {
+          let res = key.split(" ");
+          let date = commemoration.clone().add(parseInt(res[0]), res[1]);
+          if (date > today) {
+            // 找到对应的元素
+            let items = this.specialAlarmItems.filter(
+              i => i.children.filter(j => j.value === key).length > 0
+            )[0];
+            let item = items
+              ? items.children.filter(j => j.value === key)[0]
+              : undefined;
+            if (item) {
+              // 保存纪念日名称和距离日期
+              let diff = date.diff(today, "days");
+              dates.push({ title: item.content, diff: diff });
+            }
+          }
+        }
+        dates.sort((a, b) => a.date - b.date);
+
+        if (dates.length) {
+          return dates[0];
+        }
+      }
+      return null;
+    },
     // 下一个还没到的纪念日
     nextCommemoration() {
       if (this.selectDate && this.selectDate._isValid) {
@@ -193,6 +281,7 @@ export default {
       selectDate: null, // 纪念日 moment
       selectRepeat: "1year", // 重复的选项
       selectAlarm: "7days", // 提醒的选项
+      selectSpecial: [], // 特殊提醒的选项
       repeatItems: [
         { value: "none", content: "不重复" },
         { value: "1month", content: "每月" },
@@ -206,6 +295,29 @@ export default {
         { value: "7days", content: "提前7天 ( 8:00 )" },
         { value: "15days", content: "提前15天 ( 8:00 )" },
         { value: "30days", content: "提前30天 ( 8:00 )" }
+      ],
+      specialAlarmItems: [
+        {
+          label: "爱情",
+          icon: "heart",
+          children: [
+            { value: "99 days", content: "第99天" },
+            { value: "520 days", content: "第520天" },
+            { value: "999 days", content: "第999天" },
+            { value: "1314 days", content: "第1314天" },
+            { value: "5200 days", content: "第5200天" },
+            { value: "9999 days", content: "第9999天" }
+          ]
+        },
+        {
+          label: "宝宝",
+          icon: "smile",
+          children: [
+            { value: "1 months", content: "满月（第30天）" },
+            { value: "42 days", content: "月子（第42天）" },
+            { value: "100 days", content: "百日（第100天）" }
+          ]
+        }
       ],
       dateFormat: [
         "YYYY年MM月DD日",
@@ -243,7 +355,11 @@ export default {
     // 打开面板时，重置 mode 为 year
     handleOpenChange(open) {
       if (open) {
-        this.mode = "year";
+        if (this.selectDate) {
+          this.mode = "date";
+        } else {
+          this.mode = "year";
+        }
       }
     },
     // 在面板上点击时，触发此面板切换函数

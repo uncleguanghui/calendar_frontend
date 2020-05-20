@@ -116,6 +116,56 @@
           天
         </span>
       </a-form-item>
+      <a-form-item label="特殊提醒" v-bind="formItemLayout">
+        <a-select
+          mode="multiple"
+          v-decorator="[
+            'specialAlarm',
+            {
+              initialValue: selectSpecial
+            }
+          ]"
+          style="width:100%;"
+          @change="
+            e => {
+              selectSpecial = e;
+            }
+          "
+        >
+          <a-select-opt-group
+            v-for="group in specialAlarmItems"
+            :key="group.label"
+          >
+            <span slot="label">
+              <a-icon :type="group.icon" />
+              {{ group.label }}
+            </span>
+            <a-select-option
+              v-for="item in group.children"
+              :value="item.value"
+              :key="item.value"
+            >
+              {{ item.content }}
+            </a-select-option>
+          </a-select-opt-group>
+        </a-select>
+        <span slot="extra" v-if="selectSpecial.length > 0">
+          <span v-if="nextSpecialDate">
+            距离最近的特殊纪念日
+            <span :style="{ color: '#ff7c7c' }">
+              {{ nextSpecialDate.title }}
+            </span>
+            还有
+            <span :style="{ color: '#ff7c7c' }">
+              {{ nextSpecialDate.diff }}
+            </span>
+            天
+          </span>
+          <span v-else>
+            这些特殊提醒日子都已经过去啦
+          </span>
+        </span>
+      </a-form-item>
       <a-form-item label="备注" v-bind="formItemLayout">
         <a-textarea
           autocomplete="off"
@@ -139,6 +189,45 @@ export default {
     value: Boolean
   },
   computed: {
+    // 下一个特殊日子
+    nextSpecialDate() {
+      if (
+        this.selectDate &&
+        this.selectDate._isValid &&
+        this.selectSpecial &&
+        this.selectSpecial.length > 0
+      ) {
+        let today = this.$moment().startOf("day"); // 今天
+        let commemoration = this.selectDate.clone().startOf("day"); // 纪念日当天
+
+        // 添加还未到的特殊纪念日并排序
+        let dates = [];
+        for (let key of this.selectSpecial) {
+          let res = key.split(" ");
+          let date = commemoration.clone().add(parseInt(res[0]), res[1]);
+          if (date > today) {
+            // 找到对应的元素
+            let items = this.specialAlarmItems.filter(
+              i => i.children.filter(j => j.value === key).length > 0
+            )[0];
+            let item = items
+              ? items.children.filter(j => j.value === key)[0]
+              : undefined;
+            if (item) {
+              // 保存纪念日名称和距离日期
+              let diff = date.diff(today, "days");
+              dates.push({ title: item.content, diff: diff });
+            }
+          }
+        }
+        dates.sort((a, b) => a.date - b.date);
+
+        if (dates.length) {
+          return dates[0];
+        }
+      }
+      return null;
+    },
     // 农历日期，返回特殊对象 {leap: false, year: 2020, month: 4, day: 1, leapMonth: 4}
     lunarDate() {
       if (this.selectDate && this.selectDate._isValid) {
@@ -244,7 +333,7 @@ export default {
       selectType: "gregorian", // 生日类型
       selectDate: null, // 选择的日期
       selectAlarm: "7days", // 设置的提醒
-      newIndex: 0, // 新提醒的序号
+      selectSpecial: [], // 特殊提醒的选项
       alarmItems: [
         { value: "none", content: "不提醒" },
         { value: "0days", content: "当天 ( 8:00 )" },
@@ -253,6 +342,17 @@ export default {
         { value: "7days", content: "提前7天 ( 8:00 )" },
         { value: "15days", content: "提前15天 ( 8:00 )" },
         { value: "30days", content: "提前30天 ( 8:00 )" }
+      ],
+      specialAlarmItems: [
+        {
+          label: "宝宝",
+          icon: "smile",
+          children: [
+            { value: "1 months", content: "满月（第30天）" },
+            { value: "42 days", content: "月子（第42天）" },
+            { value: "100 days", content: "百日（第100天）" }
+          ]
+        }
       ],
       dateFormat: [
         "YYYY年MM月DD日",
