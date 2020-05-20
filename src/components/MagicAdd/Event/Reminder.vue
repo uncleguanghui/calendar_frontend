@@ -21,12 +21,11 @@
         >
         </a-input>
       </a-form-item>
-      <a-form-item label="提醒时间" v-bind="formItemLayout">
+      <a-form-item label="提醒日期" v-bind="formItemLayout">
         <a-date-picker
-          :showTime="{ format: 'HH:mm' }"
-          v-decorator="['time']"
-          placeholder="请选择开始提醒时间"
-          format="Y年MM月DD日  ah点mm分"
+          v-decorator="['date']"
+          placeholder="请选择首次提醒日期"
+          :format="dateFormat"
           style="width:100%"
           @change="
             e => {
@@ -35,6 +34,39 @@
           "
         >
         </a-date-picker>
+      </a-form-item>
+      <a-form-item label="提醒时间" v-bind="formItemLayout">
+        <a-time-picker
+          :showTime="{ format: 'HH:mm' }"
+          v-decorator="['time']"
+          placeholder="提醒时间"
+          format="a h点mm分"
+          style="width:100%"
+          @keydown.enter="openTime = false"
+          :open.sync="openTime"
+          @change="
+            e => {
+              selectTime = e;
+            }
+          "
+        >
+          <a-button
+            slot="addon"
+            size="small"
+            type="primary"
+            @click="openTime = false"
+            style="width:100%"
+          >
+            完成
+          </a-button>
+        </a-time-picker>
+        <span
+          slot="extra"
+          v-if="!nextAlarmTime && alarmTime"
+          style="color: #ff1313"
+        >
+          设置的提醒时间已过时，请检查
+        </span>
       </a-form-item>
       <a-form-item label="重复" v-bind="formItemLayout">
         <a-select
@@ -59,8 +91,8 @@
             {{ item.content }}
           </a-select-option>
         </a-select>
-        <span slot="extra" v-if="nextAlarmTimeString">
-          下次提醒：{{ nextAlarmTimeString }}
+        <span slot="extra" v-if="nextAlarmTime">
+          下次提醒：{{ nextAlarmTime.format("Y年MM月DD日 a h点mm分") }}
         </span>
       </a-form-item>
       <a-form-item label="备注" v-bind="formItemLayout">
@@ -87,18 +119,32 @@ export default {
     value: Boolean
   },
   computed: {
-    // 下一次提醒时间（不能设置为不重复）
-    // 如果设置的提醒时间大于等于此刻，则不返回
-    nextAlarmTimeString() {
+    // 真正的提醒时间
+    alarmTime() {
       if (
         this.selectDate &&
         this.selectDate._isValid &&
-        this.selectRepeat !== "none"
+        this.selectTime &&
+        this.selectTime._isValid
       ) {
+        let date = this.selectDate.clone().startOf("day");
+        return date
+          .hour(this.selectTime.get("hour"))
+          .minute(this.selectTime.get("minute"));
+      }
+      return null;
+    },
+    // 下一次提醒时间（不能设置为不重复）
+    nextAlarmTime() {
+      if (this.alarmTime && this.alarmTime._isValid) {
         let now = this.$moment().startOf("minute"); // 现在
-        let alarmDate = this.selectDate.clone().startOf("minute"); // 设置的提醒时间
+        let alarmDate = this.alarmTime.clone().startOf("minute"); // 设置的提醒时间
+
         if (alarmDate < now) {
           switch (this.selectRepeat) {
+            case "none":
+              alarmDate = null;
+              break;
             case "1day":
               alarmDate
                 .year(now.get("year"))
@@ -113,7 +159,7 @@ export default {
                 .year(now.get("year"))
                 .month(now.get("month"))
                 .date(now.get("date"))
-                .day(this.selectDate.get("day"));
+                .day(this.alarmTime.get("day"));
               if (alarmDate <= now) {
                 alarmDate.add(1, "weeks");
               }
@@ -133,10 +179,10 @@ export default {
             default:
               break;
           }
-          return alarmDate.format("Y年MM月DD日  ah点mm分");
         }
+        return alarmDate;
       }
-      return "";
+      return null;
     }
   },
   data() {
@@ -146,7 +192,9 @@ export default {
         labelCol: { span: 6 },
         wrapperCol: { span: 16 }
       },
+      openTime: false, // 时间选择框的打开状态
       selectDate: null, // 开始提醒的日期 moment
+      selectTime: null, // 开始提醒的时间 moment
       selectRepeat: "none", // 重复选项的 value
       repeatItems: [
         { value: "none", content: "不重复" },
@@ -154,7 +202,24 @@ export default {
         { value: "1week", content: "每周" },
         { value: "1month", content: "每月" },
         { value: "1year", content: "每年" }
-      ]
+      ],
+      dateFormat: [
+        "YYYY年MM月DD日",
+        "YYYY年MM月DD",
+        "YYYY-MM-DD",
+        "YYYYMMDD",
+        "YYYY年M月DD日",
+        "YYYY年MM月D日",
+        "YYYY年M月D日",
+        "YYYY年M月DD",
+        "YYYY年MM月D",
+        "YYYY年M月D",
+        "YYYY-M-DD",
+        "YYYY-MM-D",
+        "YYYY-M-D",
+        "YYYYMDD",
+        "YYYYMD"
+      ] // 日期格式化，支持多格式匹配，展示以第一个为准，并以此解析用户的输入项（如复制粘贴进来的日期格式）
     };
   },
   methods: {

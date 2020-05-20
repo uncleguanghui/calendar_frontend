@@ -23,10 +23,13 @@
       </a-form-item>
       <a-form-item label="日期" v-bind="formItemLayout">
         <a-date-picker
+          :mode="mode"
           v-decorator="['time']"
           placeholder="请选择纪念日"
-          format="Y年MM月DD日"
+          :format="dateFormat"
           style="width:100%"
+          @openChange="handleOpenChange"
+          @panelChange="handlePanelChange"
           @change="
             e => {
               selectDate = e;
@@ -125,12 +128,14 @@ export default {
     nextCommemoration() {
       if (this.selectDate && this.selectDate._isValid) {
         let today = this.$moment().startOf("day"); // 今天
-        let nextCommemoration = this.selectDate
-          .clone()
-          .startOf("day")
-          .year(today.get("year"));
+        let nextCommemoration = this.selectDate.clone().startOf("day"); // 纪念日当天
 
-        // 如果今年纪念日已经过了
+        // 如果纪念日发生在过去，则切换到纪念的纪念日
+        if (nextCommemoration < today) {
+          nextCommemoration.year(today.get("year"));
+        }
+
+        // 如果今年纪念日已经过了，则看明年的
         if (nextCommemoration < today) {
           // 如果按年重复，则看明年的
           if (this.selectRepeat === "1year") {
@@ -179,6 +184,7 @@ export default {
   },
   data() {
     return {
+      mode: "year",
       form: this.$form.createForm(this),
       formItemLayout: {
         labelCol: { span: 6 },
@@ -200,7 +206,24 @@ export default {
         { value: "7days", content: "提前7天 ( 8:00 )" },
         { value: "15days", content: "提前15天 ( 8:00 )" },
         { value: "30days", content: "提前30天 ( 8:00 )" }
-      ]
+      ],
+      dateFormat: [
+        "YYYY年MM月DD日",
+        "YYYY年MM月DD",
+        "YYYY-MM-DD",
+        "YYYYMMDD",
+        "YYYY年M月DD日",
+        "YYYY年MM月D日",
+        "YYYY年M月D日",
+        "YYYY年M月DD",
+        "YYYY年MM月D",
+        "YYYY年M月D",
+        "YYYY-M-DD",
+        "YYYY-MM-D",
+        "YYYY-M-D",
+        "YYYYMDD",
+        "YYYYMD"
+      ] // 日期格式化，支持多格式匹配，展示以第一个为准，并以此解析用户的输入项（如复制粘贴进来的日期格式）
     };
   },
   methods: {
@@ -216,6 +239,23 @@ export default {
     },
     handleCancel() {
       this.$emit("input", false);
+    },
+    // 打开面板时，重置 mode 为 year
+    handleOpenChange(open) {
+      if (open) {
+        this.mode = "year";
+      }
+    },
+    // 在面板上点击时，触发此面板切换函数
+    // value 为 一个 moment 对象
+    handlePanelChange(value, mode) {
+      if (!mode) {
+        // 当在 year 面板上点击时（不知道为什么 mode 为 null），切换到 month
+        this.mode = "month";
+      } else {
+        // 当在 month 面板上点击时（不知道为什么 mode 不是 month 而是 date），切换到 date
+        this.mode = "date";
+      }
     }
   }
 };
