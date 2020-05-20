@@ -37,7 +37,7 @@
         <a-card-grid class="card-item" @click="courseVisible = true">
           <a-icon class="card-icon" :component="svgCourse" />
           <span class="card-text">课程</span>
-          <!-- <course v-model="courseVisible" /> -->
+          <course v-model="courseVisible" />
         </a-card-grid>
       </a-card>
       <a-card
@@ -78,7 +78,7 @@ import svgInventory from "../../../public/svg/清单.svg";
 // import Inventory from "./Event/Inventory";
 
 import svgCourse from "../../../public/svg/课程.svg";
-// import Course from "./Event/Course";
+import Course from "./Event/Course";
 
 import svgReminder from "../../../public/svg/提醒.svg";
 import Reminder from "./Event/Reminder";
@@ -93,7 +93,7 @@ export default {
   components: {
     // Plan,
     // Inventory,
-    // Course,
+    Course,
     Commemoration,
     Reminder,
     Birthday

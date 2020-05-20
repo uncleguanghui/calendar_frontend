@@ -41,6 +41,9 @@ import request from "./utils/request";
 import Plan from "./utils/planObj";
 import VueClipboard from "vue-clipboard2";
 
+let lunar = require("chinese-lunar");
+let Mock = require("mockjs");
+
 moment.locale("zh-cn");
 VueClipboard.config.autoSetContainer = true;
 
@@ -85,12 +88,14 @@ Vue.prototype.$moment = moment;
 Vue.prototype.$axios = axios;
 Vue.prototype.$request = request;
 Vue.prototype.$Plan = Plan;
+Vue.prototype.$lunar = lunar;
+Vue.prototype.$Mock = Mock;
 
 process.env.VUE_APP_MOCK && require("./mock/index.js");
 
 // 允许在控制台使用函数，方便调试
-window.chineseLunar = require("chinese-lunar");
-window.Mock = require("mockjs");
+window.lunar = lunar;
+window.Mock = Mock;
 window.moment = moment;
 
 new Vue({
