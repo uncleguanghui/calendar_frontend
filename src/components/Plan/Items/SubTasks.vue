@@ -3,9 +3,9 @@
     <a-row
       v-for="task in subTasks"
       :key="task.key"
-      style="display: flex;"
       @mouseover.native="hoverKey = task.key"
       @mouseleave.native="hoverKey = undefined"
+      style="position:relative"
     >
       <a-checkbox
         class="task-checkbox"
@@ -37,7 +37,7 @@
     </a-row>
   </div>
   <div style="color:#bfbfbf" v-else @click="handleCreate">
-    添加子任务
+    {{ emptyText }}
   </div>
 </template>
 
@@ -62,7 +62,11 @@ export default {
     }
   },
   props: {
-    value: Array
+    value: Array,
+    emptyText: {
+      type: String,
+      default: "添加子任务"
+    }
   },
   data() {
     return {
@@ -279,7 +283,8 @@ export default {
 
 <style lang="less" scoped>
 .task-checkbox {
-  padding-right: 10px;
+  top: 5px;
+  position: absolute;
 
   /deep/ .ant-checkbox-input:focus + .ant-checkbox-inner {
     border-color: #ececec;
@@ -308,6 +313,8 @@ export default {
   transition: none; /* 去掉动画 */
   font-size: 8px;
   background: none;
+  top: 5px;
+  left: 26px;
 }
 
 .task-input:focus {
@@ -317,6 +324,9 @@ export default {
 .task-delete {
   color: #c7c7c7;
   min-width: 20px;
-  padding: 2px 0 0 5px;
+  padding: 0 0 0 5px;
+  top: 5px;
+  position: absolute;
+  right: 5px;
 }
 </style>
