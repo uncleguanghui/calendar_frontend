@@ -27,7 +27,7 @@
         <a-card-grid class="card-item" @click="planVisible = true">
           <a-icon class="card-icon" :component="svgPlan" />
           <span class="card-text">计划</span>
-          <!-- <plan v-model="planVisible" /> -->
+          <plan v-model="planVisible" />
         </a-card-grid>
         <a-card-grid class="card-item" @click="inventoryVisible = true">
           <a-icon class="card-icon" :component="svgInventory" />
@@ -72,7 +72,7 @@
 
 <script>
 import svgPlan from "../../../public/svg/计划.svg";
-// import Plan from "./Event/Plan";
+import Plan from "./Event/Plan";
 
 import svgInventory from "../../../public/svg/清单.svg";
 // import Inventory from "./Event/Inventory";
@@ -91,7 +91,7 @@ import Birthday from "./Event/Birthday";
 
 export default {
   components: {
-    // Plan,
+    Plan,
     // Inventory,
     Course,
     Commemoration,

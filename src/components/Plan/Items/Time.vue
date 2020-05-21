@@ -30,7 +30,7 @@
             :disabled-date="disabledStartDate"
             style="width: 120px"
             placeholder=""
-            format="Y-MM-DD"
+            :format="dateFormat"
           />
           <a-time-picker
             v-if="allDay === false"
@@ -174,7 +174,24 @@ export default {
       visible: false,
       durationKey: [], // 持续时间
       startOpen: false,
-      endOpen: false
+      endOpen: false,
+      dateFormat: [
+        "YYYY-MM-DD",
+        "YYYY年MM月DD日",
+        "YYYY年MM月DD",
+        "YYYYMMDD",
+        "YYYY年M月DD日",
+        "YYYY年MM月D日",
+        "YYYY年M月D日",
+        "YYYY年M月DD",
+        "YYYY年MM月D",
+        "YYYY年M月D",
+        "YYYY-M-DD",
+        "YYYY-MM-D",
+        "YYYY-M-D",
+        "YYYYMDD",
+        "YYYYMD"
+      ] // 日期格式化，支持多格式匹配，展示以第一个为准，并以此解析用户的输入项（如复制粘贴进来的日期格式）
     };
   },
   computed: {

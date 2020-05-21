@@ -31,7 +31,8 @@ import {
   TimePicker,
   Popover,
   Popconfirm,
-  AutoComplete
+  AutoComplete,
+  Cascader
 } from "ant-design-vue";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import axios from "axios";
@@ -76,6 +77,7 @@ Vue.use(TimePicker);
 Vue.use(Popover);
 Vue.use(Popconfirm);
 Vue.use(AutoComplete);
+Vue.use(Cascader);
 
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
