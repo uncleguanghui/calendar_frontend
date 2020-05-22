@@ -344,8 +344,12 @@ function updatePlansForTags() {
 // 添加一个标签
 function addTag(tagObj) {
   if (tagObj) {
-    tagObj.id = Mock.mock("@id");
-    tags = [tagObj, ...tags];
+    let newTag = {
+      id: Mock.mock("@id"),
+      title: tagObj.title || "",
+      color: tagObj.color || "#40a9ff"
+    };
+    tags = [newTag, ...tags];
   }
   return tags;
 }

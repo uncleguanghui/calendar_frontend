@@ -149,13 +149,13 @@ export default new Vuex.Store({
       });
     },
     // 创建一个标签
-    CREATETAG(state, title) {
+    CREATETAG(state, { title, color }) {
       return request({
         url: `/api/tags`,
         method: "post",
         data: {
           title: title,
-          color: "#40a9ff" // 默认蓝色
+          color: color || "#40a9ff" // 默认蓝色
         }
       }).then(res => {
         // 更新标签
@@ -292,8 +292,8 @@ export default new Vuex.Store({
     getTags({ commit }) {
       return commit("GETTAGS");
     },
-    createTag({ commit }, title) {
-      return commit("CREATETAG", title);
+    createTag({ commit }, data) {
+      return commit("CREATETAG", data);
     },
     updateTag({ commit }, tag) {
       return commit("UPDATETAG", tag);

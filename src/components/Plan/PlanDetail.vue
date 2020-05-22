@@ -99,7 +99,10 @@
 </template>
 
 <script>
-import PlanTag from "./Items/Tag";
+// TODO: 增加任务的复制功能（优先级较低，非必要不做）
+// TODO: 缩小和淡化各种提示功能的文字
+
+import PlanTag from "./Items/Tag/TagTile";
 import PlanTime from "./Items/Time";
 import PlanAlarm from "./Items/Alarm";
 import PlanPosition from "./Items/Position";

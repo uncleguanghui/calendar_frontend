@@ -158,6 +158,13 @@
 </template>
 
 <script>
+// TODO: 对于已完成和已删除的计划，都只看日期分组降序
+// TODO: 增加按标题排序
+// TODO: 缩小时显示数字，展开时右上角不显示数字
+// TODO: 优先级的高低不用图标显示，而是用方框的颜色
+// TODO: 缩小并淡化以下内容：分组的label、日期、各种Icon、数字
+// TODO: 选中某个计划时，修改底色以突出选中
+// TODO: 默认展开全部（主要目的是看看如何在切换侧边栏时过渡效果不那么强烈）
 import PlanLevel from "./Items/Level";
 import PlanCreationInput from "./Items/CreationInput";
 

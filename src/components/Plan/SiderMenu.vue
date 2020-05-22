@@ -29,7 +29,13 @@
       <template #expandIcon="props">
         <a-icon type="caret-right" :rotate="props.isActive ? 90 : 0" />
       </template>
-      <a-collapse-panel key="1" header="标签" class="collapse-panel">
+      <a-collapse-panel key="1" class="collapse-panel">
+        <span slot="header">
+          标签
+          <span key="create" class="tag-operation">
+            <plan-tag-operation />
+          </span>
+        </span>
         <a-menu
           theme="light"
           mode="vertical"
@@ -61,7 +67,14 @@
 </template>
 
 <script>
+// TODO: 缩小间距
+// TODO: 增加计划的拖动功能
+// TODO: 淡化和缩小数字
+// TODO: 增加自定义计划本
+// TODO: 整合日历，并将计划呈现在上面（这个最后做，要保证计划的各种操作都ok了）
+import PlanTagOperation from "@/components/Plan/Items/Tag/TagOperation";
 export default {
+  components: { PlanTagOperation },
   data() {
     return {
       selectedKeys: ["today"], // 默认选中的分组
@@ -180,4 +193,14 @@ export default {
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+.tag-operation {
+  padding: 5px 0 5px 10px;
+  line-height: 1;
+  height: 100%;
+  margin: 0;
+  position: absolute;
+  right: 12px;
+  top: 10px;
+}
+</style>
