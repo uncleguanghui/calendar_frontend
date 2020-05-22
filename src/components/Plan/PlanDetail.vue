@@ -2,7 +2,14 @@
   <div class="plan-page" v-if="plan">
     <!-- 标题 -->
     <div class="detail-row">
-      <a-checkbox class="taks-icon" v-model="finish" />
+      <plan-checkbox
+        class="taks-icon"
+        v-model="finish"
+        :level="plan.level"
+        :showLevel="true"
+        :id="plan.id"
+        :emitChange="true"
+      />
       <div class="plan-content">
         <!-- 标题区 -->
         <div style="display: contents">
@@ -110,6 +117,7 @@ import PlanSubTasks from "./Items/SubTasks";
 import PlanDescription from "./Items/Description";
 import PlanTitle from "./Items/Title";
 import PlanLevel from "./Items/Level";
+import PlanCheckbox from "./Items/Checkbox";
 
 export default {
   components: {
@@ -120,7 +128,8 @@ export default {
     PlanSubTasks,
     PlanDescription,
     PlanTitle,
-    PlanLevel
+    PlanLevel,
+    PlanCheckbox
   },
   data() {
     const publicPath = process.env.BASE_URL;

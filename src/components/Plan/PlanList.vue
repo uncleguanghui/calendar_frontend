@@ -103,19 +103,19 @@
           </div>
           <div class="checkbox" :key="plan.id" v-for="plan in group.options">
             <!-- 选择框 -->
-            <a-checkbox @change="() => onChange(plan)" />
+            <plan-checkbox
+              :value="plan.status === 1"
+              :level="plan.level"
+              :showLevel="true"
+              :id="plan.id"
+              :emitChange="true"
+            />
             <div
               class="checkbox-content"
               @click="() => $store.dispatch('setCurrentPlanId', plan.id)"
             >
               <!-- 标题 -->
               <span class="checkbox-label">
-                <plan-level
-                  :showDropdown="false"
-                  v-if="plan.level !== 'none'"
-                  :value="plan.level"
-                  :style="{ margin: '0 5px 2px 0' }"
-                />
                 {{ plan.title }}
               </span>
               <!-- 右上角 -->
@@ -161,15 +161,14 @@
 // TODO: 对于已完成和已删除的计划，都只看日期分组降序
 // TODO: 增加按标题排序
 // TODO: 缩小时显示数字，展开时右上角不显示数字
-// TODO: 优先级的高低不用图标显示，而是用方框的颜色
 // TODO: 缩小并淡化以下内容：分组的label、日期、各种Icon、数字
 // TODO: 选中某个计划时，修改底色以突出选中
 // TODO: 默认展开全部（主要目的是看看如何在切换侧边栏时过渡效果不那么强烈）
-import PlanLevel from "./Items/Level";
 import PlanCreationInput from "./Items/CreationInput";
+import PlanCheckbox from "./Items/Checkbox";
 
 export default {
-  components: { PlanLevel, PlanCreationInput },
+  components: { PlanCreationInput, PlanCheckbox },
   data() {
     const publicPath = process.env.BASE_URL;
     let defaultActiveKey = [
@@ -427,6 +426,7 @@ export default {
   transform: translate(0, -80%);
   top: 50%;
   text-align: center;
+  margin-top: 100px;
 }
 
 .plan-empty-image {
