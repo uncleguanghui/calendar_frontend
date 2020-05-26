@@ -10,7 +10,9 @@
       {{ tg.title }}
     </a-tag>
     <a-dropdown :trigger="['click']" v-model="visible">
-      <a-tag class="tag-add"> <a-icon type="plus" /> 添加标签 </a-tag>
+      <a-tag class="tag-add">
+        <span style="color:#bfbfbf"><a-icon type="plus" />添加标签</span>
+      </a-tag>
       <!-- 标签下拉框 slot -->
       <div slot="overlay" class="tags-dropdown" style="width:300px">
         <div style="padding: 0 0 10px 0">

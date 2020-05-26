@@ -36,7 +36,7 @@
       </span>
     </a-row>
   </div>
-  <div style="color:#bfbfbf" v-else @click="handleCreate">
+  <div class="task-empty" v-else @click="handleCreate">
     {{ emptyText }}
   </div>
 </template>
@@ -311,7 +311,7 @@ export default {
   line-height: 2;
   margin-bottom: 5px;
   transition: none; /* 去掉动画 */
-  font-size: 8px;
+  font-size: 10px;
   background: none;
   top: 5px;
   left: 26px;
@@ -328,5 +328,12 @@ export default {
   top: 5px;
   position: absolute;
   right: 5px;
+}
+
+.task-empty {
+  color: #bfbfbf;
+}
+.task-empty:hover {
+  background-color: #40a9ff24;
 }
 </style>

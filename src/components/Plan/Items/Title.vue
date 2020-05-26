@@ -1,6 +1,7 @@
 <template>
   <a-textarea
     class="plan-header-label"
+    placeholder="输入标题"
     v-model="title"
     :maxLength="30"
     :autoSize="true"
@@ -49,10 +50,14 @@ export default {
   font-weight: bold;
   font-size: 16px;
   display: -webkit-inline-box;
-  padding: 0;
+  padding: 4px 0;
   border: none;
   resize: none;
   background: #fff0;
+}
+
+.plan-header-label::placeholder {
+  color: #bfbfbf;
 }
 
 .plan-header-label:focus {

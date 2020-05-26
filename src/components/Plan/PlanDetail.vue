@@ -107,7 +107,6 @@
 
 <script>
 // TODO: 增加任务的复制功能（优先级较低，非必要不做）
-// TODO: 缩小和淡化各种提示功能的文字
 
 import PlanTag from "./Items/Tag/TagTile";
 import PlanTime from "./Items/Time";
@@ -331,6 +330,7 @@ export default {
 
 .plan-header-operation {
   margin: 0 12px 2px 0;
+  cursor: pointer;
 }
 
 .detail-row {

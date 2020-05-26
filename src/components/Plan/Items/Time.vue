@@ -3,7 +3,8 @@
     <span style="cursor:pointer">
       <span v-if="showIcon">
         <a-tooltip title="设置时间" trigger="hover" placement="top">
-          <a-icon type="clock-circle" v-if="timeString" style="color:#00bcbc" />
+          <!-- 当设置了有效时间时，修改时钟颜色 -->
+          <a-icon type="clock-circle" v-if="timeString" style="color:#1890ff" />
           <a-icon type="clock-circle" v-else />
         </a-tooltip>
       </span>

@@ -15,7 +15,7 @@
       <a-menu-item :key="group.key" v-for="group in planGroupMenu">
         <a-icon :type="group.icon" :style="{ color: group.iconColor }" />
         {{ group.name }}
-        <span style="float:right;" v-if="planNumForStatus[group.key]">
+        <span class="plan-num" v-if="planNumForStatus[group.key]">
           {{ planNumForStatus[group.key] }}
         </span>
       </a-menu-item>
@@ -27,15 +27,17 @@
       :style="{ textAlign: 'left', backgroundColor: '#fff0' }"
     >
       <template #expandIcon="props">
-        <a-icon type="caret-right" :rotate="props.isActive ? 90 : 0" />
+        <a-icon
+          type="caret-right"
+          :rotate="props.isActive ? 90 : 0"
+          style="color:#00000060"
+        />
       </template>
       <a-collapse-panel key="1" class="collapse-panel">
         <span slot="header">
           标签
-          <span key="create" class="tag-operation">
-            <plan-tag-operation />
-          </span>
         </span>
+        <plan-tag-operation class="plan-num" slot="extra" />
         <a-menu
           theme="light"
           mode="vertical"
@@ -54,7 +56,8 @@
               </span>
             </a-tag>
             <span
-              style="right: 0; top: 8px; position: absolute; "
+              class="plan-num"
+              style="right: 0; top: 10px; position: absolute; "
               v-if="planNumForTags[tag.id]"
             >
               {{ planNumForTags[tag.id] }}
@@ -67,9 +70,11 @@
 </template>
 
 <script>
+// 样式
 // TODO: 缩小间距
+
+// 功能
 // TODO: 增加计划的拖动功能
-// TODO: 淡化和缩小数字
 // TODO: 增加自定义计划本
 // TODO: 整合日历，并将计划呈现在上面（这个最后做，要保证计划的各种操作都ok了）
 import PlanTagOperation from "@/components/Plan/Items/Tag/TagOperation";
@@ -194,13 +199,9 @@ export default {
 </script>
 
 <style scoped>
-.tag-operation {
-  padding: 5px 0 5px 10px;
-  line-height: 1;
-  height: 100%;
-  margin: 0;
-  position: absolute;
-  right: 12px;
-  top: 10px;
+.plan-num {
+  float: right;
+  font-size: 12px;
+  color: #00000080;
 }
 </style>

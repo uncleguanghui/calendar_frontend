@@ -50,6 +50,10 @@ export default {
   background: #fff0;
 }
 
+.plan-description-content::placeholder {
+  color: #bfbfbf;
+}
+
 .plan-description-content:focus {
   border: none;
   box-shadow: none;

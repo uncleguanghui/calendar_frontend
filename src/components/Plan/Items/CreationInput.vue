@@ -9,7 +9,7 @@
       <plan-level class="create-icon" style="margin: 0 5px" v-model="level" />
       <plan-time
         class="create-icon"
-        style="margin: 0 5px"
+        style="margin: 0 5px; vertical-align: middle;"
         v-model="time"
         :showIcon="true"
       />

@@ -4,7 +4,7 @@
     v-model="position"
     :data-source="addressList"
     class="position-input"
-    placeholder=""
+    placeholder="输入地址"
     @search="onSearch"
     @change="emitInput"
   />

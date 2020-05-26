@@ -91,17 +91,29 @@
     </div>
     <!-- 计划列表 -->
     <div class="page" v-if="groups.length">
-      <a-collapse
-        v-model="activeKey"
-        :bordered="false"
-        :style="{ backgroundColor: '#fff0' }"
-      >
+      <a-collapse v-model="activeKey" :bordered="false" class="plan-collapse">
+        <template #expandIcon="props">
+          <a-icon
+            type="caret-right"
+            :rotate="props.isActive ? 90 : 0"
+            style="color:#00000060"
+          />
+        </template>
         <a-collapse-panel :key="group.key" v-for="group in groups">
-          <div slot="header">
-            <span>{{ group.title }}</span>
-            <span :style="{ float: 'right' }">{{ group.options.length }}</span>
-          </div>
-          <div class="checkbox" :key="plan.id" v-for="plan in group.options">
+          <span slot="header" class="collapse-label">
+            {{ group.title }}
+          </span>
+          <span slot="extra" class="collapse-label-right">
+            {{ group.options.length }}
+          </span>
+          <div
+            class="checkbox"
+            :key="plan.id"
+            v-for="plan in group.options"
+            :style="{
+              backgroundColor: currentPlanId === plan.id ? '#40a9ff24' : ''
+            }"
+          >
             <!-- 选择框 -->
             <plan-checkbox
               :value="plan.status === 1"
@@ -124,25 +136,34 @@
                 <a-icon
                   type="bell"
                   v-if="plan.alarm"
-                  style="padding-right: 10px"
+                  style="padding-left: 10px"
                 />
                 <!-- 子任务的符号 -->
                 <a-icon
                   type="ordered-list"
                   v-if="plan.subTasks.length > 0"
-                  style="padding-right: 10px"
+                  style="padding-left: 10px"
                 />
                 <!-- 开始日期 -->
-                <span :style="{ color: plan.isExpired() ? '#ff4d4f' : '' }">
-                  {{
-                    plan.startDate._isValid
-                      ? plan.startDate.format("M月D日")
-                      : ""
-                  }}
+                <span
+                  v-if="plan.startDate._isValid"
+                  :style="{
+                    color: plan.isExpired() ? '#ff4d4f' : '',
+                    paddingLeft: '10px'
+                  }"
+                >
+                  {{ plan.startDate.format("M月D日") }}
                 </span>
               </div>
               <!-- 底部的任务描述 -->
-              <div v-if="showDetail" class="checkbox-description">
+              <div
+                v-if="showDetail && plan.description"
+                class="checkbox-description"
+                :style="{
+                  borderBottom:
+                    currentPlanId !== plan.id ? '1px solid #ececec' : ''
+                }"
+              >
                 {{ plan.description }}
               </div>
             </div>
@@ -158,12 +179,16 @@
 </template>
 
 <script>
+// 样式
 // TODO: 对于已完成和已删除的计划，都只看日期分组降序
+// TODO: 当全部展开时，本组件长度可滑动，但是其他组件不受影响
+// TODO: 将使用 png 的组件都改成使用 svg
+
+// 功能
 // TODO: 增加按标题排序
-// TODO: 缩小时显示数字，展开时右上角不显示数字
-// TODO: 缩小并淡化以下内容：分组的label、日期、各种Icon、数字
-// TODO: 选中某个计划时，修改底色以突出选中
 // TODO: 默认展开全部（主要目的是看看如何在切换侧边栏时过渡效果不那么强烈）
+// TODO: 当详情数据发生变动时，所测对应的数据并没有及时更新（如描述、日期、优先级等）
+
 import PlanCreationInput from "./Items/CreationInput";
 import PlanCheckbox from "./Items/Checkbox";
 
@@ -180,6 +205,7 @@ export default {
       "low"
     ]; // 默认展开的列，默认不展开已完成和已删除列
     return {
+      currentPlanId: this.$store.state.currentPlanId, // 当前点击的计划ID
       groups: [], // 分组后的计划
       groupKey: "", // 当前选中的分组
       showCreationGroupKey: ["today", "recent", "all"], // 要显示创建计划 input 的分组
@@ -206,6 +232,9 @@ export default {
     },
     "$store.state.currentPlans": function() {
       this.refreshCurrentGroups();
+    },
+    "$store.state.currentPlanId": function(to) {
+      this.currentPlanId = to;
     },
     selectedSortKey(from, to) {
       if (from[0] !== to[0]) {
@@ -420,7 +449,39 @@ export default {
 };
 </script>
 
-<style scoped>
+<style lang="less" scoped>
+.plan-collapse {
+  background-color: #ffffff00;
+
+  /deep/ .ant-collapse-header {
+    padding: 0;
+  }
+
+  /deep/ .ant-collapse-item {
+    padding: 20px 0 0 0;
+  }
+
+  /deep/ .ant-collapse-content {
+    width: 100%;
+  }
+
+  /deep/ .ant-collapse-content-box {
+    padding: 0;
+  }
+}
+
+.collapse-label {
+  padding-left: 40px;
+  font-size: 10px;
+  color: #00000080;
+}
+
+.collapse-label-right {
+  padding-right: 16px;
+  font-size: 10px;
+  color: #00000080;
+}
+
 .plan-empty {
   position: absolute;
   transform: translate(0, -80%);
@@ -439,8 +500,8 @@ export default {
 }
 
 .checkbox {
-  max-height: 50px;
-  margin: 10px 0;
+  padding: 5px 16px;
+  cursor: pointer;
 }
 
 .checkbox-content {
@@ -449,9 +510,12 @@ export default {
 }
 
 .checkbox-right {
+  font-size: 12px;
   right: 15px;
+  padding-top: 5px;
   display: inline-block;
   position: absolute;
+  color: #00000070;
 }
 
 .checkbox-label,
@@ -468,15 +532,16 @@ export default {
 
 .checkbox-description {
   font-size: 8px;
-  margin-left: 25px;
-  line-height: 2;
-  border-bottom: 1px solid #ececec;
-  max-width: calc(100% - 20px);
+  color: #00000080;
+  margin-left: 21px;
+  line-height: 1;
+  max-width: calc(100% - 21px);
+  padding: 5px 0 5px 5px;
 }
 
 .checkbox-label {
   font-weight: bold;
-  max-width: calc(100% - 130px);
+  max-width: calc(100% - 110px);
   top: 5px;
   position: relative;
 }
