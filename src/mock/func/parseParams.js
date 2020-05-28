@@ -9,7 +9,9 @@ export default function(url) {
   let params = {};
   for (let param of paramString.split("&")) {
     let p = param.split("=");
-    params[p[0]] = p.slice(1).join("=");
+    let key = p[0];
+    let value = p.slice(1).join("=");
+    params[key] = Number(value) || value;
   }
   return params;
 }

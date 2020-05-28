@@ -6,7 +6,6 @@
         placeholder="搜索：输入英文关键字"
         enter-button
         @search="onSearch"
-        @change="onChange"
         :style="{ width: '300px' }"
         slot="title"
       />
@@ -16,8 +15,8 @@
         v-for="image in renderFiles"
         :key="image"
       >
-        <img
-          :src="image"
+        <div
+          v-html="dictSVG[image]"
           :style="{ maxHeight: '100px' }"
           @dblclick="() => copyImage(image)"
         />
@@ -33,10 +32,13 @@
     </a-card>
     <!-- 加载更多 -->
     <a-button
-      v-if="!searchInput"
       type="dashed"
       :style="{ margin: '20px 0' }"
       @click="loadMore"
+      v-if="
+        (!searchValue && hasNextLoadPage && loadStatus === 0) ||
+          (searchValue && hasNextSearchPage && searchStatus === 0)
+      "
     >
       加载更多
     </a-button>
@@ -45,30 +47,27 @@
 
 <script>
 export default {
-  name: "",
-  props: [""],
   data() {
-    const publicPath = process.env.BASE_URL;
-    const names = require
-      .context("../../../public/illustrations", false, /.(png|svg)$/)
-      .keys()
-      .map(obj => obj.slice(2, obj.length)); //去掉文件名前面的 "./"
     return {
-      publicPath: publicPath,
-      searchInput: "", //搜索文字
-      names: names, //所有图片名
-      files: names.map(obj => publicPath + "illustrations/" + obj), //所有图片路径
-      renderFiles: [], //要渲染的图片
-      showFiles: [], //当前已经渲染过的图片，用于取消搜索时加载回来
+      publicPath: process.env.BASE_URL,
       pageSize: 40,
-      nextPage: 0,
       scrollDelta: 100, // 距离底部的阈值，当小于这个值时加载更多图片
-      notificationTime: undefined, //开始提示的时间
-      notificationDuration: 4.5 //到底时提示的时间（秒）
+
+      loadStatus: 0, // 异步加载状态：0-未加载；1-加载中，此时无法运行 loadmore
+      nextLoadPage: 0, // 加载图片 page index
+      hasNextLoadPage: true, // 是否还有下一页加载
+      showLoadFiles: [], //当前已经渲染过的图片，用于取消搜索时加载回来
+
+      searchStatus: 0, // 搜索时的异步加载状态：0-未加载；1-加载中，此时无法运行 loadmore
+      searchValue: "", // 搜索的内容
+      nextSearchPage: 0, // 搜索图片 page index
+      hasNextSearchPage: true, // 是否还有下一页搜索
+      showSearchFiles: [], //当前已经渲染过的图片，用于取消搜索时加载回来
+
+      renderFiles: [], //要渲染的图片
+      dictSVG: {} // 已下载的svg图片
     };
   },
-  components: {},
-  beforeMount() {},
   mounted() {
     // 一开始的时候先加载一次图片
     this.loadMore();
@@ -76,32 +75,79 @@ export default {
     window.addEventListener("scroll", this.scrollListener);
   },
   methods: {
-    // 加载更多图片
+    // 正常加载图片
+    load(pageIndex = 0) {
+      this.loadStatus = 1;
+      this.$request({
+        url: "/api/illustrations/load",
+        method: "get",
+        params: {
+          page: pageIndex,
+          size: this.pageSize
+        }
+      }).then(res => {
+        this.hasNextLoadPage = res.data.hasMore;
+        if (res.data.names.length > 0) {
+          res.data.names.map(i => this.getSvg(i));
+          this.nextLoadPage = pageIndex + 1;
+          this.renderFiles = [...this.renderFiles, ...res.data.names];
+          this.showLoadFiles = this.renderFiles; // 更新当前渲染的图片
+        }
+        this.loadStatus = 0;
+      });
+    },
+    // 搜索图片
+    search(value, pageIndex = 0) {
+      this.searchStatus = 1;
+      this.$request({
+        url: "/api/illustrations/search",
+        method: "get",
+        params: {
+          page: pageIndex,
+          size: this.pageSize,
+          keywords: value
+        }
+      }).then(res => {
+        this.hasNextSearchPage = res.data.hasMore;
+        if (res.data.names.length > 0) {
+          res.data.names.map(i => this.getSvg(i));
+          this.nextSearchPage = pageIndex + 1;
+          this.renderFiles = [...this.renderFiles, ...res.data.names];
+          this.showSearchFiles = this.renderFiles; // 更新当前渲染的图片
+        }
+        this.searchStatus = 0;
+      });
+    },
+    // 按页加载图片
     loadMore() {
-      const start = this.nextPage * this.pageSize;
-      const newFiles = this.files.slice(start, start + this.pageSize);
-      if (newFiles.length > 0) {
-        this.renderFiles = [...this.renderFiles, ...newFiles];
-        this.showFiles = this.renderFiles;
-        this.nextPage += 1;
-      } else {
-        this.notification();
+      if (
+        this.searchValue &&
+        this.searchStatus === 0 &&
+        this.hasNextSearchPage
+      ) {
+        // 有搜索时
+        this.search(this.searchValue, this.nextSearchPage);
+      } else if (
+        !this.searchValue &&
+        this.loadStatus === 0 &&
+        this.hasNextLoadPage
+      ) {
+        // 正常加载时
+        this.load(this.nextLoadPage);
       }
     },
-    // 当没有新图片时，提示用户
-    notification() {
-      if (
-        // 设定间隔时间，防止多次提示
-        !this.notificationTime ||
-        new Date() - this.notificationTime >= this.notificationDuration * 1000
-      ) {
-        this.$notification.open({
-          duration: this.notificationDuration,
-          message: "已经到底啦",
-          icon: <a-icon type="smile" style="color: #108ee9" />
-          // placement: "bottomRight"
+    // 获取svg内容
+    getSvg(name) {
+      if (!(name in this.dictSVG)) {
+        let url = this.publicPath + "illustrations/" + name;
+        this.$axios.get(url).then(res => {
+          // 添加样式
+          let data =
+            '<svg style="max-height:100px; width:100%; cursor:pointer"' +
+            res.data.slice(4);
+          // 使得视图能够准确更新
+          this.$set(this.dictSVG, name, data);
         });
-        this.notificationTime = new Date();
       }
     },
     // 滚动的监听事件
@@ -116,40 +162,39 @@ export default {
     },
     // 搜索图片
     onSearch(value) {
-      this.searchInput = value;
-      if (value) {
-        this.renderFiles = this.names
-          .filter(obj => obj.toLowerCase().indexOf(value.toLowerCase()) > -1)
-          .map(obj => this.publicPath + "illustrations/" + obj);
-      } else {
-        this.renderFiles = this.showFiles;
+      console.log("onSearch", value);
+      if (value !== this.searchValue) {
+        // 清空之前的搜索内容
+        this.searchValue = value;
+        this.nextSearchPage = 0;
+        this.hasNextSearchPage = true;
+        this.showSearchFiles = [];
+        if (!value) {
+          // 如果没有值的话，则渲染之前所有正常加载的图片
+          this.renderFiles = this.showLoadFiles;
+        } else {
+          // 如果有新的值，则清空当前渲染的图片，并重新下载
+          this.renderFiles = [];
+          this.search(value, 0);
+        }
       }
     },
-    // 搜索时监听输入
-    onChange(e) {
-      const { value } = e.target;
-      this.onSearch(value);
-    },
     // 双击拷贝图像内容
-    copyImage(imagePath) {
-      this.$axios.get(imagePath).then(response => {
-        this.$copyText(response.data)
-          .then(() => {
-            const len = response.data.length;
-            this.$notification.success({
-              message: `已将svg内容复制到剪贴板`,
-              description:
-                response.data.slice(0, 30) +
-                " ... " +
-                response.data.slice(len - 10, len)
-            });
-          })
-          .catch(() => {
-            this.$notification.error({
-              message: `拷贝失败`
-            });
+    copyImage(name) {
+      let data = this.dictSVG[name];
+      this.$copyText(data)
+        .then(() => {
+          const len = data.length;
+          this.$notification.success({
+            message: `已将svg内容复制到剪贴板`,
+            description: data.slice(0, 30) + " ... " + data.slice(len - 10, len)
           });
-      });
+        })
+        .catch(() => {
+          this.$notification.error({
+            message: `拷贝失败`
+          });
+        });
     }
   },
   computed: {
@@ -171,8 +216,7 @@ export default {
       }
       return width;
     }
-  },
-  watch: {}
+  }
 };
 </script>
 
