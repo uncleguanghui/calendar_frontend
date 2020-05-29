@@ -22,30 +22,12 @@
         <!-- 右上角功能区 -->
         <div :style="{ float: 'right' }">
           <!-- 修改优先级 -->
-          <plan-level v-model="level" class="plan-header-operation" />
+          <plan-level v-model="level" style="margin-right:10px" />
           <!-- 收藏 -->
-          <a-tooltip
-            :title="!plan.star ? '点击收藏' : '点击取消收藏'"
-            trigger="hover"
-            placement="top"
-          >
-            <a-avatar
-              shape="square"
-              :src="!plan.star ? starImage : unstarImage"
-              :size="14"
-              class="plan-header-operation"
-              @click="handleStar"
-            />
-          </a-tooltip>
+          <plan-star v-model="star" style="margin-right:10px" />
           <!-- 更多功能：删除 -->
           <a-dropdown :trigger="['click']">
-            <a-avatar
-              shape="square"
-              class="plan-header-operation"
-              :src="moreImage"
-              :size="20"
-              @click="e => e.preventDefault()"
-            />
+            <a-icon type="more" class="super-icon" />
             <a-menu slot="overlay" style="min-width:100px">
               <a-menu-item key="1" @click="handleDeleteOrRecover">
                 <a-icon type="delete" />
@@ -117,6 +99,7 @@ import PlanDescription from "./Items/Description";
 import PlanTitle from "./Items/Title";
 import PlanLevel from "./Items/Level";
 import PlanCheckbox from "./Items/Checkbox";
+import PlanStar from "./Items/Star";
 
 export default {
   components: {
@@ -128,21 +111,20 @@ export default {
     PlanDescription,
     PlanTitle,
     PlanLevel,
-    PlanCheckbox
+    PlanCheckbox,
+    PlanStar
   },
   data() {
     const publicPath = process.env.BASE_URL;
     return {
       plan: null, // 当前计划
       publicPath: publicPath, // public 文件夹的位置
-      starImage: publicPath + "icons/" + "收藏.png",
-      unstarImage: publicPath + "icons/" + "未收藏.png",
-      emptyImage: publicPath + "images/" + "Knowledge.svg",
-      moreImage: publicPath + "icons/" + "更多.png",
+      emptyImage: publicPath + "svg/" + "Knowledge.svg",
 
       refresh: true,
 
       finish: false, // 完成状态
+      star: false, // 收藏状态
       level: "", // 优先级
       title: "", // 标题
       start: "", // 开始时间，如 "2020-01-01 10:10:10"
@@ -159,10 +141,6 @@ export default {
     updatePlan(data) {
       this.$store.dispatch("updatePlan", { id: this.plan.id, data: data });
     },
-    // 收藏/取消收藏
-    handleStar() {
-      this.updatePlan({ star: !this.plan.star });
-    },
     // 删除/恢复任务
     handleDeleteOrRecover() {
       this.updatePlan({ isDeleted: !this.plan.isDeleted });
@@ -178,6 +156,7 @@ export default {
         this.level = plan.level;
         this.finish = plan.isFinished();
         this.title = plan.title;
+        this.star = plan.star;
         this.start = plan.start;
         this.time = plan.time;
         this.tags = plan.tags;
@@ -300,6 +279,14 @@ export default {
       } else {
         console.log("优先级数据没有变化");
       }
+    },
+    star(to) {
+      if (this.plan.star !== to) {
+        console.log("收藏数据发生了变化，推送到后端");
+        this.updatePlan({ star: to });
+      } else {
+        console.log("收藏数据没有变化");
+      }
     }
   }
 };
@@ -326,11 +313,6 @@ export default {
 
 .taks-icon {
   padding-right: 10px;
-}
-
-.plan-header-operation {
-  margin: 0 12px 2px 0;
-  cursor: pointer;
 }
 
 .detail-row {

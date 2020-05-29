@@ -11,7 +11,14 @@
 </template>
 
 <script>
-import AMap from "AMap";
+let AMap = undefined;
+try {
+  AMap = require("AMap");
+} catch (error) {
+  console.error(error);
+}
+
+// import AMap from "AMap";
 import lodash from "lodash";
 
 export default {

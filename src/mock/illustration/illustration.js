@@ -2,7 +2,7 @@
 import parseParams from "@/mock/func/parseParams";
 
 const names = require
-  .context("@/../public/illustrations", false, /.(png|svg)$/)
+  .context("@/../public/illustrations", false, /.(svg)$/)
   .keys()
   .map(obj => obj.slice(2, obj.length)); //去掉文件名前面的 "./"
 

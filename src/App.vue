@@ -43,4 +43,24 @@ export default {
   -moz-text-overflow: ellipsis;
   -webkit-text-overflow: ellipsis;
 }
+
+.super-icon {
+  height: 20px;
+  width: 20px;
+
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  color: rgba(0, 0, 0, 0.65);
+  font-size: 20px;
+  font-variant: tabular-nums;
+  font-feature-settings: "tnum";
+  list-style: none;
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-align: center;
+  vertical-align: middle;
+}
 </style>

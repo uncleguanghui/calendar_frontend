@@ -10,11 +10,10 @@
           :trigger="['click']"
           v-if="groups.length && selectedSortKey[0]"
         >
-          <a-avatar
-            shape="square"
+          <img
+            class="super-icon"
+            style="cursor: pointer; margin-right:10px"
             :src="selectedSortKey[0] === 'time' ? timeImage : levelImage"
-            :size="18"
-            :style="{ marginRight: '15px' }"
           />
           <a-menu
             slot="overlay"
@@ -22,20 +21,18 @@
             @click="selectedSortKey = [$event.key]"
           >
             <a-menu-item key="time">
-              <a-avatar
-                shape="square"
+              <img
+                class="super-icon"
+                style="margin-right:15px"
                 :src="timeImage"
-                :size="20"
-                :style="{ marginRight: '10px' }"
               />
               按时间排序
             </a-menu-item>
             <a-menu-item key="level">
-              <a-avatar
-                shape="square"
+              <img
+                class="super-icon"
+                style="margin-right:15px"
                 :src="levelImage"
-                :size="18"
-                :style="{ marginRight: '10px' }"
               />
               按优先级排序
             </a-menu-item>
@@ -43,38 +40,28 @@
         </a-dropdown>
         <!-- 更多下拉框 -->
         <a-dropdown :trigger="['click']">
-          <a-avatar
-            shape="square"
-            :src="publicPath + 'icons/' + '更多.png'"
-            :size="20"
-          />
-          <a-menu slot="overlay" @click="moreClick">
-            <a-menu-item key="detail" v-if="groups.length">
+          <a-icon type="more" class="super-icon" />
+          <a-menu slot="overlay">
+            <a-menu-item key="detail" @click="showDetail = !showDetail">
               <span v-if="showDetail">
-                <a-avatar
-                  shape="square"
-                  :src="hideImage"
-                  :size="18"
-                  :style="{ marginRight: '10px' }"
+                <a-icon
+                  type="eye-invisible"
+                  style="margin-right: 10px; font-size: 14px;"
                 />
                 隐藏详情
               </span>
               <span v-else>
-                <a-avatar
-                  shape="square"
-                  :src="showImage"
-                  :size="18"
-                  :style="{ marginRight: '10px' }"
+                <a-icon
+                  type="eye"
+                  style="margin-right: 10px; font-size: 14px;"
                 />
                 显示详情
               </span>
             </a-menu-item>
-            <a-menu-item key="sync">
-              <a-avatar
-                shape="square"
-                :src="publicPath + 'icons/' + '同步.png'"
-                :size="18"
-                :style="{ marginRight: '10px' }"
+            <a-menu-item key="sync" @click="$store.dispatch('getPlans')">
+              <a-icon
+                type="sync"
+                style="margin-right: 10px; font-size: 14px;"
               />
               同步任务
             </a-menu-item>
@@ -182,7 +169,6 @@
 // 样式
 // TODO: 对于已完成和已删除的计划，都只看日期分组降序
 // TODO: 当全部展开时，本组件长度可滑动，但是其他组件不受影响
-// TODO: 将使用 png 的组件都改成使用 svg
 
 // 功能
 // TODO: 增加按标题排序
@@ -216,11 +202,9 @@ export default {
       selectedSortKey: ["time"], // 排序 menu 选中
       showDetail: true, // 是否显示详情
       title: "",
-      hideImage: publicPath + "icons/" + "详情-隐藏.png",
-      showImage: publicPath + "icons/" + "详情-显示.png",
-      timeImage: publicPath + "icons/" + "降序-时间.png",
-      levelImage: publicPath + "icons/" + "降序-优先级.png",
-      emptyImage: publicPath + "images/" + "Relax.svg"
+      timeImage: publicPath + "svg/" + "降序-时间.svg",
+      levelImage: publicPath + "svg/" + "降序-优先级.svg",
+      emptyImage: publicPath + "svg/" + "Relax.svg"
     };
   },
   watch: {
@@ -260,19 +244,6 @@ export default {
       }
       this.groups = groups;
       console.log("2 成功分组计划列表页");
-    },
-    moreClick({ key }) {
-      switch (key) {
-        case "detail":
-          this.showDetail = !this.showDetail;
-          console.log("2 显示/隐藏详情");
-          break;
-        case "sync":
-          this.$store.dispatch("getPlans");
-          break;
-        default:
-          break;
-      }
     },
     onChange(plan) {
       // TODO: 添加完成事件
