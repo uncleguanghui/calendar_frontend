@@ -1,7 +1,13 @@
 <template>
-  <div class="plan-page" v-if="plan">
+  <div style="text-align:left" v-if="plan">
     <!-- 标题 -->
-    <div class="detail-row">
+    <div
+      class="detail-row"
+      :style="{
+        boxShadow: scrollTop > 0 ? '0px 5px 6px -5px #000000b3' : 'none',
+        margin: '5px 0 3px 0'
+      }"
+    >
       <plan-checkbox
         class="taks-icon"
         v-model="finish"
@@ -38,44 +44,51 @@
         </div>
       </div>
     </div>
-    <!-- 标签 -->
-    <div class="detail-row">
-      <a-icon type="tags" class="taks-icon" />
-      <plan-tag v-model="tags" v-if="refresh" />
-    </div>
-    <!-- 任务时间 -->
-    <div class="detail-row">
-      <a-icon type="clock-circle" class="taks-icon" />
-      <div class="plan-content pointer-content">
-        <plan-time v-model="time" v-if="refresh" />
-      </div>
-    </div>
-    <!-- 提醒 -->
-    <div class="detail-row" v-if="$moment(start)._isValid">
-      <a-icon type="bell" class="taks-icon" />
-      <div class="plan-content pointer-content">
-        <plan-alarm v-model="alarm" :start="start" />
-      </div>
-    </div>
-    <!-- 地点 -->
-    <div class="detail-row">
-      <a-icon type="environment" class="taks-icon" />
-      <div class="plan-content text-content">
-        <plan-position v-model="position" />
-      </div>
-    </div>
-    <!-- 子任务 -->
-    <div class="detail-row">
-      <a-icon type="ordered-list" class="taks-icon" />
-      <div class="plan-content">
-        <plan-sub-tasks v-model="subTasks" />
-      </div>
-    </div>
-    <!-- 描述 -->
-    <div class="detail-row">
-      <a-icon type="file-text" class="taks-icon" />
-      <div class="plan-content text-content">
-        <plan-description v-model="description" />
+    <div style="overflow: hidden">
+      <div
+        style="overflow-y: scroll;overflow-x: hidden;max-height: calc(100vh - 160px);"
+        @scroll="scrollTop = $event.target.scrollTop"
+      >
+        <!-- 标签 -->
+        <div class="detail-row">
+          <a-icon type="tags" class="taks-icon" />
+          <plan-tag v-model="tags" v-if="refresh" />
+        </div>
+        <!-- 任务时间 -->
+        <div class="detail-row">
+          <a-icon type="clock-circle" class="taks-icon" />
+          <div class="plan-content pointer-content">
+            <plan-time v-model="time" v-if="refresh" />
+          </div>
+        </div>
+        <!-- 提醒 -->
+        <div class="detail-row" v-if="$moment(start)._isValid">
+          <a-icon type="bell" class="taks-icon" />
+          <div class="plan-content pointer-content">
+            <plan-alarm v-model="alarm" :start="start" />
+          </div>
+        </div>
+        <!-- 地点 -->
+        <div class="detail-row">
+          <a-icon type="environment" class="taks-icon" />
+          <div class="plan-content text-content">
+            <plan-position v-model="position" />
+          </div>
+        </div>
+        <!-- 子任务 -->
+        <div class="detail-row">
+          <a-icon type="ordered-list" class="taks-icon" />
+          <div class="plan-content">
+            <plan-sub-tasks v-model="subTasks" />
+          </div>
+        </div>
+        <!-- 描述 -->
+        <div class="detail-row">
+          <a-icon type="file-text" class="taks-icon" />
+          <div class="plan-content text-content">
+            <plan-description v-model="description" />
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -120,6 +133,7 @@ export default {
       plan: null, // 当前计划
       publicPath: publicPath, // public 文件夹的位置
       emptyImage: publicPath + "svg/" + "Knowledge.svg",
+      scrollTop: 0, // 计划详情部分的滚动情况
 
       refresh: true,
 
@@ -168,6 +182,24 @@ export default {
         console.log("3 当前计划列表里没有对应的计划");
         this.plan = null;
       }
+    },
+    // 节流函数 : 减少浏览器内存消耗
+    throttle(callback) {
+      let isScrolling = false;
+      return function() {
+        if (isScrolling) return;
+        isScrolling = true;
+        // requestAnimationFrame:回调间隔 = 浏览器重绘频率
+        // setTimeout(function() {
+        //   callback();
+        //   isScrolling = false;
+        // }, 1000);
+        window.requestAnimationFrame(function() {
+          callback();
+          console.log(1111);
+          isScrolling = false;
+        });
+      };
     }
   },
   watch: {
@@ -293,11 +325,6 @@ export default {
 </script>
 
 <style scoped>
-.plan-page {
-  text-align: left;
-  padding: 15px;
-}
-
 .plan-empty {
   width: 100%;
   height: 100%;
@@ -318,7 +345,8 @@ export default {
 .detail-row {
   display: -webkit-box;
   line-height: 2;
-  margin: 10px 0;
+  margin: 5px 0;
+  padding: 0 15px;
 }
 
 .plan-content {

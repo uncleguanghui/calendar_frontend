@@ -51,6 +51,7 @@ export default {
     return {
       publicPath: process.env.BASE_URL,
       pageSize: 40,
+      isScrolling: false,
       scrollDelta: 100, // 距离底部的阈值，当小于这个值时加载更多图片
 
       loadStatus: 0, // 异步加载状态：0-未加载；1-加载中，此时无法运行 loadmore
@@ -72,7 +73,11 @@ export default {
     // 一开始的时候先加载一次图片
     this.loadMore();
     // 增加滚动监听事件
-    window.addEventListener("scroll", this.scrollListener);
+    window.addEventListener("scroll", this.throttle(this.scrollListener));
+  },
+  destroyed() {
+    // 摧毁监听事件
+    window.removeEventListener("scroll", this.throttle(this.scrollListener));
   },
   methods: {
     // 正常加载图片
@@ -149,6 +154,23 @@ export default {
           this.$set(this.dictSVG, name, data);
         });
       }
+    },
+    // 节流函数 : 减少浏览器内存消耗
+    throttle(callback) {
+      let isScrolling = false;
+      return function() {
+        if (isScrolling) return;
+        isScrolling = true;
+        // requestAnimationFrame:回调间隔 = 浏览器重绘频率
+        // setTimeout(function() {
+        //   callback();
+        //   isScrolling = false;
+        // }, 1000);
+        window.requestAnimationFrame(function() {
+          callback();
+          isScrolling = false;
+        });
+      };
     },
     // 滚动的监听事件
     scrollListener() {

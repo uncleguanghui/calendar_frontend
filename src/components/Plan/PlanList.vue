@@ -1,6 +1,12 @@
 <template>
   <div :style="{ textAlign: 'left' }">
-    <div :style="{ padding: '15px', minHeight: '70px' }">
+    <div
+      :style="{
+        padding: '15px',
+        minHeight: '70px',
+        boxShadow: scrollTop > 0 ? '0px 5px 6px -5px #000000b3' : 'none'
+      }"
+    >
       <!-- 标题 -->
       <span :style="{ fontSize: '26px' }">{{ title }}</span>
       <!-- 右上角功能区 -->
@@ -68,95 +74,107 @@
           </a-menu>
         </a-dropdown>
       </div>
-    </div>
-    <!-- 创建计划 -->
-    <div
-      style="padding: 0 12px"
-      v-if="showCreationGroupKey.indexOf(groupKey) > -1"
-    >
-      <plan-creation-input style="width:100%" />
+      <!-- 创建计划 -->
+      <div
+        v-if="showCreationGroupKey.indexOf(groupKey) > -1"
+        style="padding-top:15px"
+      >
+        <plan-creation-input style="width:100%" />
+      </div>
     </div>
     <!-- 计划列表 -->
-    <div class="page" v-if="groups.length">
-      <a-collapse v-model="activeKey" :bordered="false" class="plan-collapse">
-        <template #expandIcon="props">
-          <a-icon
-            type="caret-right"
-            :rotate="props.isActive ? 90 : 0"
-            style="color:#00000060"
-          />
-        </template>
-        <a-collapse-panel :key="group.key" v-for="group in groups">
-          <span slot="header" class="collapse-label">
-            {{ group.title }}
-          </span>
-          <span slot="extra" class="collapse-label-right">
-            {{ group.options.length }}
-          </span>
-          <div
-            class="checkbox"
-            :key="plan.id"
-            v-for="plan in group.options"
-            :style="{
-              backgroundColor: currentPlanId === plan.id ? '#40a9ff24' : ''
-            }"
-          >
-            <!-- 选择框 -->
-            <plan-checkbox
-              :value="plan.status === 1"
-              :level="plan.level"
-              :showLevel="true"
-              :id="plan.id"
-              :emitChange="true"
+    <div v-if="groups.length" style="overflow:hidden">
+      <div
+        :style="{
+          overflowY: 'scroll',
+          overflowX: 'hidden',
+          maxHeight:
+            showCreationGroupKey.indexOf(groupKey) > -1
+              ? 'calc(100vh - 180px)'
+              : 'calc(100vh - 134px)'
+        }"
+        @scroll="scrollTop = $event.target.scrollTop"
+      >
+        <a-collapse v-model="activeKey" :bordered="false" class="plan-collapse">
+          <template #expandIcon="props">
+            <a-icon
+              type="caret-right"
+              :rotate="props.isActive ? 90 : 0"
+              style="color:#00000060"
             />
+          </template>
+          <a-collapse-panel :key="group.key" v-for="group in groups">
+            <span slot="header" class="collapse-label">
+              {{ group.title }}
+            </span>
+            <span slot="extra" class="collapse-label-right">
+              {{ group.options.length }}
+            </span>
             <div
-              class="checkbox-content"
-              @click="() => $store.dispatch('setCurrentPlanId', plan.id)"
+              class="checkbox"
+              :key="plan.id"
+              v-for="plan in group.options"
+              :style="{
+                backgroundColor: currentPlanId === plan.id ? '#40a9ff24' : ''
+              }"
             >
-              <!-- 标题 -->
-              <span class="checkbox-label">
-                {{ plan.title }}
-              </span>
-              <!-- 右上角 -->
-              <div class="checkbox-right">
-                <!-- 提醒的符号 -->
-                <a-icon
-                  type="bell"
-                  v-if="plan.alarm"
-                  style="padding-left: 10px"
-                />
-                <!-- 子任务的符号 -->
-                <a-icon
-                  type="ordered-list"
-                  v-if="plan.subTasks.length > 0"
-                  style="padding-left: 10px"
-                />
-                <!-- 开始日期 -->
-                <span
-                  v-if="plan.startDate._isValid"
+              <!-- 选择框 -->
+              <plan-checkbox
+                :value="plan.status === 1"
+                :level="plan.level"
+                :showLevel="true"
+                :id="plan.id"
+                :emitChange="true"
+              />
+              <div
+                class="checkbox-content"
+                @click="() => $store.dispatch('setCurrentPlanId', plan.id)"
+              >
+                <!-- 标题 -->
+                <span class="checkbox-label">
+                  {{ plan.title }}
+                </span>
+                <!-- 右上角 -->
+                <div class="checkbox-right">
+                  <!-- 提醒的符号 -->
+                  <a-icon
+                    type="bell"
+                    v-if="plan.alarm"
+                    style="padding-left: 10px"
+                  />
+                  <!-- 子任务的符号 -->
+                  <a-icon
+                    type="ordered-list"
+                    v-if="plan.subTasks.length > 0"
+                    style="padding-left: 10px"
+                  />
+                  <!-- 开始日期 -->
+                  <span
+                    v-if="plan.startDate._isValid"
+                    :style="{
+                      color: plan.isExpired() ? '#ff4d4f' : '',
+                      paddingLeft: '10px'
+                    }"
+                  >
+                    {{ plan.startDate.format("M月D日") }}
+                  </span>
+                </div>
+                <!-- 底部的任务描述 -->
+                <div
+                  v-if="showDetail && plan.description"
+                  class="checkbox-description"
                   :style="{
-                    color: plan.isExpired() ? '#ff4d4f' : '',
-                    paddingLeft: '10px'
+                    borderBottom:
+                      currentPlanId !== plan.id ? '1px solid #ececec' : ''
                   }"
                 >
-                  {{ plan.startDate.format("M月D日") }}
-                </span>
-              </div>
-              <!-- 底部的任务描述 -->
-              <div
-                v-if="showDetail && plan.description"
-                class="checkbox-description"
-                :style="{
-                  borderBottom:
-                    currentPlanId !== plan.id ? '1px solid #ececec' : ''
-                }"
-              >
-                {{ plan.description }}
+                  {{ plan.description }}
+                </div>
               </div>
             </div>
-          </div>
-        </a-collapse-panel>
-      </a-collapse>
+          </a-collapse-panel>
+        </a-collapse>
+      </div>
     </div>
     <div v-else class="plan-empty">
       <img :src="emptyImage" alt="" class="plan-empty-image" />
@@ -168,7 +186,6 @@
 <script>
 // 样式
 // TODO: 对于已完成和已删除的计划，都只看日期分组降序
-// TODO: 当全部展开时，本组件长度可滑动，但是其他组件不受影响
 
 // 功能
 // TODO: 增加按标题排序
@@ -191,6 +208,7 @@ export default {
       "low"
     ]; // 默认展开的列，默认不展开已完成和已删除列
     return {
+      scrollTop: 0, // 计划列表部分的滚动情况
       currentPlanId: this.$store.state.currentPlanId, // 当前点击的计划ID
       groups: [], // 分组后的计划
       groupKey: "", // 当前选中的分组
@@ -423,13 +441,15 @@ export default {
 <style lang="less" scoped>
 .plan-collapse {
   background-color: #ffffff00;
+  // overflow-y: scroll;
+  // overflow-x: hidden;
 
   /deep/ .ant-collapse-header {
     padding: 0;
   }
 
   /deep/ .ant-collapse-item {
-    padding: 20px 0 0 0;
+    padding: 15px 0 0 0;
   }
 
   /deep/ .ant-collapse-content {
@@ -471,7 +491,7 @@ export default {
 }
 
 .checkbox {
-  padding: 5px 16px;
+  padding: 3px 16px;
   cursor: pointer;
 }
 
@@ -484,8 +504,7 @@ export default {
   font-size: 12px;
   right: 15px;
   padding-top: 5px;
-  display: inline-block;
-  position: absolute;
+  float: right;
   color: #00000070;
 }
 
@@ -512,7 +531,7 @@ export default {
 
 .checkbox-label {
   font-weight: bold;
-  max-width: calc(100% - 110px);
+  max-width: calc(100% - 130px);
   top: 5px;
   position: relative;
 }

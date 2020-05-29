@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div style="overflow: auto;">
     <a-menu
       theme="light"
       mode="vertical"
