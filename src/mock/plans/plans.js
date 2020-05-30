@@ -7,6 +7,28 @@ let dayMS = 60 * 24; //一天的分钟数
 let monthMS = dayMS * 30; //一个月的分钟数
 let levels = ["high", "medium", "low", "none"]; // 优先级
 let repeat = ["day", "week", "month", "year", "none"]; // 重复
+let planNum = Mock.mock("@integer(30, 60)"); // 模拟的实际计划数量
+let tagNum = Mock.mock("@integer(10, 20)"); // 模拟的总标签数
+
+// 被删除的概率
+let deleteRatio = 0.25;
+// 未被删除的计划各状态的概率
+let ratio = [
+  1, // 已过期的比例（状态为未完成且未删除，且满足：必须有开始时间且发生在过去（今天0点之前），如果有结束时间（条件概率），结束时间也发生在过去）
+  1, // 进行中的比例（状态为未完成且未删除，且满足：如果有结束时间（则发生在未来（今天0点之后），如果没有结束时间但有开始时间发生在未来，如果什么时间都没有则相当于一直是进行中~）
+  1 // 已完成的比例（状态为已完成且未删除，且满足：完成时间发生在过去（今天0点之前），其他日期随机，时间可有可无、可以在过去也可以在未来）
+];
+ratio = ratio.map(i => i / eval(ratio.join("+"))); // 归一化
+ratio = ratio.map((_, index) => eval(ratio.slice(0, index + 1).join("+"))); // 堆积概率
+let timeRatio = [
+  3, // 没有开始时间和结束时间的比例
+  1, // 仅有开始时间的比例
+  1 // 既有开始时间，也有结束时间的比例
+];
+timeRatio = timeRatio.map(i => i / eval(timeRatio.join("+"))); // 归一化
+timeRatio = timeRatio.map((_, index) =>
+  eval(timeRatio.slice(0, index + 1).join("+"))
+); // 叠加
 
 // 解析标签（主要是赋予id和颜色，以及去掉不在标签列表中的标签）
 // function parseTags(tags) {
@@ -27,7 +49,7 @@ let repeat = ["day", "week", "month", "year", "none"]; // 重复
 // 创建标签
 function createTags() {
   let tags_ = [];
-  for (let index = 0; index < 10; index++) {
+  for (let index = 0; index < tagNum; index++) {
     let tag_ = {
       id: Mock.mock("@id"), // 标签ID
       title: Mock.mock("@ctitle(1, 10)"), // 标题，1~10字
@@ -52,34 +74,92 @@ function createTime() {
     start: null,
     end: null,
     finish: null,
-    status: 0 // 完成状态 : 1 - 已完成；0 - 未完成
+    status: 0, // 完成状态 : 1 - 已完成；0 - 未完成
+    isDeleted: 0 // 是否被删除
   };
 
-  if (Math.random() > 0.2) {
-    let symbol = Math.random() >= 0.5 ? 1 : -1;
-    let deltaMS = Math.ceil(Math.random() * monthMS);
-    let start = moment().add(symbol * deltaMS, "minutes"); // 随机生成的时间范围：上个月的此刻~下个月的此刻
-    let end = start
+  let r = Math.random();
+  if (r < ratio[0]) {
+    // 过期
+    let hasEndRatio = (timeRatio[1] - timeRatio[0]) / (1 - timeRatio[0]);
+    if (Math.random() < hasEndRatio) {
+      // 有开始时间和结束时间
+      let deltaMS = Math.ceil(Math.random() * monthMS);
+      let end = moment()
+        .startOf("day")
+        .add(-deltaMS, "minutes");
+      let start = end
+        .clone()
+        .add(-Mock.mock(`@integer(1,${3 * dayMS})`), "minutes");
+      time.allDay = Mock.mock("@boolean");
+      time.start = start.format("Y-MM-DD HH:mm:ss");
+      time.end = end.format("Y-MM-DD HH:mm:ss");
+    } else {
+      // 有开始时间，但没有结束时间
+      let deltaMS = Math.ceil(Math.random() * monthMS);
+      let start = moment()
+        .startOf("day")
+        .add(-deltaMS, "minutes");
+      time.allDay = Mock.mock("@boolean");
+      time.start = start.format("Y-MM-DD HH:mm:ss");
+    }
+  } else if (r >= ratio[0] && r < ratio[1]) {
+    // 进行中
+    let r_ = Math.random();
+    if (r_ >= timeRatio[0] && r_ < timeRatio[1]) {
+      // 有开始时间但没有结束时间
+      let deltaMS = Math.ceil(Math.random() * monthMS);
+      let start = moment()
+        .startOf("day")
+        .add(deltaMS, "minutes");
+      time.allDay = Mock.mock("@boolean");
+      time.start = start.format("Y-MM-DD HH:mm:ss");
+    } else if (r_ >= timeRatio[1]) {
+      // 有开始时间和结束时间
+      let deltaMS = Math.ceil(Math.random() * monthMS);
+      let end = moment()
+        .startOf("day")
+        .add(deltaMS, "minutes");
+      let start = end
+        .clone()
+        .add(-Mock.mock(`@integer(1,${3 * dayMS})`), "minutes");
+      time.allDay = Mock.mock("@boolean");
+      time.start = start.format("Y-MM-DD HH:mm:ss");
+      time.end = end.format("Y-MM-DD HH:mm:ss");
+    }
+  } else if (r >= ratio[1]) {
+    // 已完成
+    let finish = moment()
+      .startOf("day")
       .clone()
-      .add(Mock.mock(`@integer(1,${3 * dayMS})`), "minutes");
-    let finish = start
+      .add(-Mock.mock(`@integer(${-5 * dayMS})`), "minutes");
+    time.finish = finish.format("Y-MM-DD HH:mm:ss");
+    time.status = 1;
+
+    let start = moment()
+      .startOf("day")
+      .add(`@integer(${-15 * dayMS},${5 * dayMS})`, "minutes");
+    let end = start
       .clone()
       .add(Mock.mock(`@integer(${-5 * dayMS},${5 * dayMS})`), "minutes");
 
-    time.allDay = Mock.mock("@boolean"); // 是否是全天的任务，boolean
-    time.start = start.format("Y-MM-DD HH:mm:ss"); // 开始时间
-
-    // 随机添加3天之内的结束时间
-    if (Math.random() > 0.2) {
+    let r_ = Math.random();
+    if (r_ >= timeRatio[0] && r_ < timeRatio[1]) {
+      // 有开始时间但没有结束时间
+      time.allDay = Mock.mock("@boolean");
+      time.start = start.format("Y-MM-DD HH:mm:ss");
+    } else if (r_ >= timeRatio[1]) {
+      // 有开始时间和结束时间
+      time.allDay = Mock.mock("@boolean");
+      time.start = start.format("Y-MM-DD HH:mm:ss");
       time.end = end.format("Y-MM-DD HH:mm:ss");
     }
-
-    // 随机添加任务状态和结束时间
-    if (Math.random() > 0.2) {
-      time.finish = finish.format("Y-MM-DD HH:mm:ss");
-      time.status = 1;
-    }
   }
+  // 删除
+  if (Math.random() < deleteRatio) {
+    time.isDeleted = 1;
+  }
+
   return time;
 }
 
@@ -109,7 +189,7 @@ function parseSubTasks(SubTasks) {
 function createSubTasks() {
   let tasks = [];
   if (Mock.mock("@boolean")) {
-    for (let index = 0; index < Mock.mock("@integer(5, 10)"); index++) {
+    for (let index = 0; index < Mock.mock("@integer(0, 30)"); index++) {
       tasks.push({
         key: Mock.mock("@id"),
         index: index, // 任务的序号
@@ -201,7 +281,6 @@ function createPlan() {
     title: Mock.mock("@ctitle(1, 30)"), // 标题，1~50字
     star: Mock.mock("@boolean"), // 是否收藏，boolean
     typeId: "life",
-    isDeleted: Mock.mock("@boolean"), // 是否被删除
     position: Mock.mock("@city"), // 国内随机城市
     level: Mock.mock(`@pick(${levels})`), // 优先级
     repeat: Mock.mock(`@pick(${repeat})`), // 重复
@@ -223,7 +302,7 @@ function createPlan() {
 // 创建一堆计划
 function createPlans() {
   let plans_ = [];
-  for (let index = 0; index < Mock.mock("@integer(10, 30)"); index++) {
+  for (let index = 0; index < planNum; index++) {
     let plan_ = createPlan();
     plans_.push(plan_);
   }

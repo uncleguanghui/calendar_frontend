@@ -12,17 +12,22 @@
       }"
       @click="refreshCurrentPlans"
     >
-      <a-menu-item :key="group.key" v-for="group in planGroupMenu">
-        <a-icon :type="group.icon" :style="{ color: group.iconColor }" />
-        {{ group.name }}
-        <span class="plan-num" v-if="planNumForStatus[group.key]">
-          {{ planNumForStatus[group.key] }}
-        </span>
-      </a-menu-item>
+      <template v-for="groupId in groupIds">
+        <a-menu-item
+          :key="group.key"
+          v-for="group in planGroupMenu.filter(i => i.groupId === groupId)"
+        >
+          <a-icon :type="group.icon" :style="{ color: group.iconColor }" />
+          {{ group.name }}
+          <span class="plan-num" v-if="planNumForStatus[group.key]">
+            {{ planNumForStatus[group.key] }}
+          </span>
+        </a-menu-item>
+        <a-menu-divider :key="groupId" />
+      </template>
     </a-menu>
-    <a-divider style="margin: 12px 0;" />
     <a-collapse
-      default-active-key="1"
+      default-active-key=""
       :bordered="false"
       :style="{ textAlign: 'left', backgroundColor: '#fff0' }"
     >
@@ -81,10 +86,13 @@ import PlanTagOperation from "@/components/Plan/Items/Tag/TagOperation";
 export default {
   components: { PlanTagOperation },
   data() {
+    let planGroupMenu = this.$store.state.planGroupMenu;
+    let groupIds = [...new Set(planGroupMenu.map(i => i.groupId))].sort();
     return {
       selectedKeys: ["today"], // 默认选中的分组
       selectedTags: [], // 选中的标签
-      planGroupMenu: this.$store.state.planGroupMenu, // 计划侧边栏
+      groupIds: groupIds, // 组
+      planGroupMenu: planGroupMenu, // 计划侧边栏
       tags: [...this.$store.state.planTags].sort(this.tagSort), // 排序后的标签
       plans: [...this.$store.state.planDataFull] // 所有任务
     };
@@ -137,8 +145,14 @@ export default {
         if (plan.belongStar()) {
           res.star += 1;
         }
-        if (plan.belongAll()) {
-          res.all += 1;
+        if (plan.belongUndated()) {
+          res.undated += 1;
+        }
+        if (plan.belongGoing()) {
+          res.going += 1;
+        }
+        if (plan.belongExpired()) {
+          res.expired += 1;
         }
         if (plan.belongFinished()) {
           res.finished += 1;
@@ -171,8 +185,14 @@ export default {
         case "star":
           currentPlans = this.plans.filter(i => i.belongStar());
           break;
-        case "all":
-          currentPlans = this.plans.filter(i => i.belongAll());
+        case "going":
+          currentPlans = this.plans.filter(i => i.belongGoing());
+          break;
+        case "undated":
+          currentPlans = this.plans.filter(i => i.belongUndated());
+          break;
+        case "expired":
+          currentPlans = this.plans.filter(i => i.belongExpired());
           break;
         case "finished":
           currentPlans = this.plans.filter(i => i.belongFinished());

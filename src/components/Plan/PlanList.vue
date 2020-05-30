@@ -10,7 +10,7 @@
       <!-- 标题 -->
       <span :style="{ fontSize: '26px' }">{{ title }}</span>
       <!-- 右上角功能区 -->
-      <div :style="{ float: 'right', marginTop: '12px' }">
+      <div :style="{ float: 'right', marginTop: '8px' }">
         <!-- 排序下拉框（当且仅当列表页有数据时显示） -->
         <a-dropdown
           :trigger="['click']"
@@ -107,7 +107,11 @@
             <span slot="header" class="collapse-label">
               {{ group.title }}
             </span>
-            <span slot="extra" class="collapse-label-right">
+            <span
+              slot="extra"
+              class="collapse-label-right"
+              v-if="activeKey.filter(i => i === group.key).length === 0"
+            >
               {{ group.options.length }}
             </span>
             <div
@@ -185,7 +189,7 @@
 
 <script>
 // 样式
-// TODO: 对于已完成和已删除的计划，都只看日期分组降序
+// TODO: 根据屏幕大小，来响应式地显示或隐藏组件
 
 // 功能
 // TODO: 增加按标题排序
@@ -199,20 +203,13 @@ export default {
   components: { PlanCreationInput, PlanCheckbox },
   data() {
     const publicPath = process.env.BASE_URL;
-    let defaultActiveKey = [
-      "going",
-      "expired",
-      "nodate",
-      "high",
-      "medium",
-      "low"
-    ]; // 默认展开的列，默认不展开已完成和已删除列
+    let defaultActiveKey = []; // 默认展开的列，默认不展开已完成和已删除列
     return {
       scrollTop: 0, // 计划列表部分的滚动情况
       currentPlanId: this.$store.state.currentPlanId, // 当前点击的计划ID
       groups: [], // 分组后的计划
-      groupKey: "", // 当前选中的分组
-      showCreationGroupKey: ["today", "recent", "all"], // 要显示创建计划 input 的分组
+      groupKey: this.$store.state.currentGroupKey, // 当前选中的分组
+      showCreationGroupKey: ["today", "recent"], // 要显示创建计划 input 的分组
       dayNames: ["日", "一", "二", "三", "四", "五", "六"],
       defaultActiveKey: defaultActiveKey, // 默认展开的 key
       activeKey: defaultActiveKey, // 当前展开的 key
@@ -260,12 +257,13 @@ export default {
         default:
           break;
       }
-      this.groups = groups;
+      this.groups = this.groupDate(groups);
+
+      // 设置打开的key
+      let keys = this.groups.map(i => i.key);
+      this.defaultActiveKey = keys;
+      this.activeKey = keys;
       console.log("2 成功分组计划列表页");
-    },
-    onChange(plan) {
-      // TODO: 添加完成事件
-      console.log(`${plan}已完成`);
     },
     // 对计划进行排序，如果两个都有开始时间，则大的排在后面；如果只有一个有开始时间，则有开始时间的排在前面。
     sortPlan(a, b) {
@@ -291,11 +289,14 @@ export default {
       let going = []; // 进行中
       let expired = []; // 已过期
       let finished = []; // 已完成
+      let undated = []; // 已完成
       let trash = []; // 已删除
-      let nodate = []; // 无日期
+      let other = []; // 其他（不应该存在）
       for (let plan of plans) {
         if (plan.isDeleted) {
           trash.push(plan);
+        } else if (plan.isUndated()) {
+          undated.push(plan);
         } else if (plan.isExpired()) {
           expired.push(plan);
         } else if (plan.isFinished()) {
@@ -303,28 +304,35 @@ export default {
         } else if (plan.isGoing()) {
           going.push(plan);
         } else {
-          nodate.push(plan);
+          other.push(plan);
         }
       }
 
       // 组内排序
+      undated.sort(this.sortPlan);
       going.sort(this.sortPlan);
       finished.sort(this.sortPlan);
       expired.sort(this.sortPlan);
       trash.sort(this.sortPlan);
-      nodate.sort(this.sortPlan);
+      other.sort(this.sortPlan);
 
       // 按顺序显示
       let group = [];
-
       if (expired.length) {
         group.push({ options: expired, title: "已过期", key: "expired" });
       }
       if (going.length) {
         group.push({ options: going, title: "进行中", key: "going" });
       }
-      if (nodate.length) {
-        group.push({ options: nodate, title: "无日期", key: "nodate" });
+      if (undated.length) {
+        group.push({ options: undated, title: "无限期", key: "undated" });
+      }
+      if (other.length) {
+        group.push({
+          options: other,
+          title: "其他（不应该存在）",
+          key: "other"
+        });
       }
       if (finished.length) {
         group.push({ options: finished, title: "已完成", key: "finished" });
@@ -340,16 +348,20 @@ export default {
       let plans = [...this.$store.state.currentPlans];
 
       // 分组
+      // 优先级包含了进行中和已过期
       let highLevel = [];
       let mediumLevel = [];
       let lowLevel = [];
       let noneLevel = [];
       let finished = [];
+      let undated = []; // 已完成
       let trash = [];
-      let nodate = [];
+      let other = [];
       for (let plan of plans) {
         if (plan.isDeleted) {
           trash.push(plan);
+        } else if (plan.isUndated()) {
+          undated.push(plan);
         } else if (plan.isFinished()) {
           finished.push(plan);
         } else if (plan.level === "high") {
@@ -361,7 +373,7 @@ export default {
         } else if (plan.level === "none") {
           noneLevel.push(plan);
         } else {
-          nodate.push(plan);
+          other.push(plan);
         }
       }
 
@@ -371,8 +383,9 @@ export default {
       lowLevel.sort(this.sortPlan);
       noneLevel.sort(this.sortPlan);
       finished.sort(this.sortPlan);
+      undated.sort(this.sortPlan);
       trash.sort(this.sortPlan);
-      nodate.sort(this.sortPlan);
+      other.sort(this.sortPlan);
 
       // 按顺序显示
       let group = [];
@@ -392,8 +405,15 @@ export default {
       if (noneLevel.length) {
         group.push({ options: noneLevel, title: "无优先级", key: "none" });
       }
-      if (nodate.length) {
-        group.push({ options: nodate, title: "无日期", key: "nodate" });
+      if (undated.length) {
+        group.push({ options: undated, title: "无限期", key: "undated" });
+      }
+      if (other.length) {
+        group.push({
+          options: other,
+          title: "其他（不应该存在）",
+          key: "other"
+        });
       }
       if (finished.length) {
         group.push({ options: finished, title: "已完成", key: "finished" });
@@ -404,35 +424,79 @@ export default {
 
       return group;
     },
-    // 对计划列表 data ，按照列表内元素的日期进行分组
-    groupDate(data) {
-      // 对进行中的任务，按日期进行分组
-      var datePlans = {};
-      for (let plan of data) {
-        const key = new Date(plan.end).toDateString();
-        if (datePlans[key]) {
-          datePlans[key].push(plan);
+    // 根据日期获取分组的标题
+    getDateTitle(date) {
+      if (date._isValid) {
+        let today = this.$moment().startOf("day");
+        let before = today.clone().add(-2, "days");
+        let yesterday = today.clone().add(-1, "days");
+        let tomorrow = today.clone().add(1, "days");
+        let after = today.clone().add(2, "days");
+        let weekday = "周" + this.dayNames[date.day()];
+        if (date.isSame(today)) {
+          return weekday + "，今天";
+        } else if (date.isSame(tomorrow)) {
+          return weekday + "，明天";
+        } else if (date.isSame(after)) {
+          return weekday + "，后天";
+        } else if (date.isSame(yesterday)) {
+          return weekday + "，昨天";
+        } else if (date.isSame(before)) {
+          return weekday + "，前天";
         } else {
-          datePlans[key] = [plan];
+          return date.format("YYYY年MM月DD日");
+        }
+      } else {
+        return "无限期";
+      }
+    },
+    // 对计划列表 options，按照日期进行分组
+    splitDate(options) {
+      // 需要先转换成字符串，否则两个 moment 对象，哪怕时间一样也是无法去重的
+      let dates = options.map(i =>
+        i.groupDay._isValid ? i.groupDay.format("YYYY-MM-DD") : "0zzzz"
+      );
+      return [...new Set(dates)].sort().map(date => {
+        let date_ = this.$moment(date);
+        let title = this.getDateTitle(date_);
+        return {
+          key: title,
+          title: title,
+          options: options.filter(i =>
+            date_._isValid ? date_.isSame(i.groupDay) : !i.groupDay._isValid
+          )
+        };
+      });
+    },
+    // 对计划组列表 data ，按照列表内元素的日期进行分组
+    groupDate(data) {
+      let groupKey = null; // 需要按日期分组的key
+      switch (this.groupKey) {
+        case "finished":
+          groupKey = "finished";
+          break;
+        case "expired":
+          groupKey = "expired";
+          break;
+        case "trash":
+          groupKey = "trash";
+          break;
+        default:
+          groupKey = "going";
+          break;
+      }
+      let groups = [];
+      for (let group of data) {
+        if (group.key === groupKey) {
+          let newGroup = this.splitDate(group.options);
+          for (let group_ of newGroup) {
+            groups.push(group_);
+          }
+        } else {
+          groups.push(group);
         }
       }
-      // 按日期降序
-      return Array.from(
-        new Set(data.map(plan => new Date(plan.end).toDateString()))
-      )
-        .sort((a, b) => new Date(b) - new Date(a))
-        .map(date => {
-          return {
-            title:
-              "周" +
-              this.dayNames[new Date(date).getDay()] +
-              ", " +
-              (new Date(date).toDateString() === new Date().toDateString()
-                ? "今天"
-                : this.$moment(date).format("M月D日")),
-            data: datePlans[date]
-          };
-        });
+      return groups;
     }
   }
 };

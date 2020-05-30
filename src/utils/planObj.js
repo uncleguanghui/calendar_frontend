@@ -29,6 +29,11 @@ export default function(plan) {
   obj.startDate = moment(obj.start); // 开始时间
   obj.endDate = moment(obj.end); // 结束时间
   obj.finishDate = moment(obj.finish); // 完成时间
+  obj.groupDay =
+    (obj.startDate._isValid && obj.startDate.startOf("day")) ||
+    (obj.endDate._isValid && obj.endDate.startOf("day")) ||
+    (obj.finishDate._isValid && obj.finishDate.startOf("day")) ||
+    moment(null); // 分组的日期
   // 时间字符串（如："true__2020-01-01 10:10:10__2020-01-02 20:20:20" 或 "true__2020-01-01 10:10:10" 或 ""）
   if (obj.allDay !== null && obj.start) {
     obj.time = obj.allDay + "__" + obj.start;
@@ -46,6 +51,10 @@ export default function(plan) {
   }
 
   // 计算函数
+  // 无限期的：状态为0，且日期都是无效的
+  obj.isUndated = function() {
+    return obj.status === 0 && !obj.startDate._isValid && !obj.endDate._isValid;
+  };
   // 已过期：状态为0，且结束时间早于今天0点（如果没有结束时间，则开始时间早于今天0点）
   obj.isExpired = function() {
     const today0 = moment().startOf("day");
@@ -61,11 +70,12 @@ export default function(plan) {
   obj.isFinished = function() {
     return obj.status === 1;
   };
-  // 进行中：状态为0，且结束时间晚于今天0点（如果没有结束时间，则开始时间晚于今天0点）
+  // 进行中：状态为0，有开始日期或结束日期，且结束时间晚于今天0点（如果没有结束时间，则开始时间晚于今天0点）
   obj.isGoing = function() {
     const today0 = moment().startOf("day");
     return (
       obj.status === 0 &&
+      !obj.isUndated() &&
       ((obj.endDate._isValid && obj.endDate >= today0) ||
         (!obj.endDate._isValid &&
           obj.startDate._isValid &&
@@ -73,8 +83,8 @@ export default function(plan) {
     );
   };
 
-  // 分组
-  // 属于今天分组：未删除，且开始时间在今天0点~明天0点（或结束时间/完成时间在这个范围）
+  // 分组1
+  // 属于今天分组：未删除，非已完成，非无限期，已过期或开始时间（或结束时间/完成时间）在今天0点~明天0点
   obj.belongToday = function() {
     const today0 = moment().startOf("day");
     const tomorrow0 = moment()
@@ -82,9 +92,12 @@ export default function(plan) {
       .add(1, "days");
     return (
       !obj.isDeleted &&
-      ((obj.endDate._isValid &&
-        obj.endDate >= today0 &&
-        obj.endDate < tomorrow0) ||
+      !obj.isUndated() &&
+      !obj.isFinished() &&
+      (obj.isExpired() ||
+        (obj.endDate._isValid &&
+          obj.endDate >= today0 &&
+          obj.endDate < tomorrow0) ||
         (obj.startDate._isValid &&
           obj.startDate >= today0 &&
           obj.startDate < tomorrow0) ||
@@ -93,7 +106,7 @@ export default function(plan) {
           obj.finishDate < tomorrow0))
     );
   };
-  // 属于最近分组：未删除，且开始时间在今天0点~7天后的0点（或结束时间/完成时间在这个范围）
+  // 属于最近分组：未删除，非已完成，非无限期，已过期或开始时间（或结束时间/完成时间）在今天0点~7天后的0点
   obj.belongRecent = function() {
     const today0 = moment().startOf("day");
     const future0 = moment()
@@ -101,9 +114,12 @@ export default function(plan) {
       .add(7, "days");
     return (
       !obj.isDeleted &&
-      ((obj.endDate._isValid &&
-        obj.endDate >= today0 &&
-        obj.endDate < future0) ||
+      !obj.isUndated() &&
+      !obj.isFinished() &&
+      (obj.isExpired() ||
+        (obj.endDate._isValid &&
+          obj.endDate >= today0 &&
+          obj.endDate < future0) ||
         (obj.startDate._isValid &&
           obj.startDate >= today0 &&
           obj.startDate < future0) ||
@@ -116,11 +132,21 @@ export default function(plan) {
   obj.belongStar = function() {
     return !obj.isDeleted && obj.star;
   };
-  // 属于全部分组：未删除
-  obj.belongAll = function() {
-    return !obj.isDeleted;
+
+  // 分组2
+  // 属于无限期分组：未删除，无限期
+  obj.belongUndated = function() {
+    return !obj.isDeleted && obj.isUndated();
   };
-  // 属于已完成分组：未删除，且状态为已完成
+  // 属于进行中分组：未删除，进行中
+  obj.belongGoing = function() {
+    return !obj.isDeleted && obj.isGoing();
+  };
+  // 属于已过期分组：未删除，已过期
+  obj.belongExpired = function() {
+    return !obj.isDeleted && obj.isExpired();
+  };
+  // 属于已完成分组：未删除，已完成
   obj.belongFinished = function() {
     return !obj.isDeleted && obj.isFinished();
   };
