@@ -107,9 +107,6 @@ export default {
       // 更新当前列表的数据
       let key = this.selectedTags[0] || this.selectedKeys[0];
       this.refreshCurrentPlans({ key });
-    },
-    selectedKeys(to) {
-      this.$store.dispatch("setCurrentGroupKey", to.length ? to[0] : "");
     }
   },
   computed: {
@@ -171,8 +168,13 @@ export default {
     // 点击侧边栏，刷新数据——从所有计划中，筛选出当前页面需要展示的计划
     refreshCurrentPlans({ key }) {
       let currentPlans = [];
-      this.selectedTags = [];
-      this.selectedKeys = [key];
+      let menu = this.planGroupMenu[
+        this.planGroupMenu.map(i => i.key).indexOf(key)
+      ];
+      let title = menu ? menu.name : "";
+      let selectedKeys = [key];
+      let selectedTags = [];
+      let selectedTag = undefined;
 
       switch (key) {
         // 是否是分组的 key
@@ -202,15 +204,23 @@ export default {
           break;
         // 是否是标签的 key
         default:
-          this.selectedKeys = [];
-          if (this.tags.map(i => i.id).indexOf(key) > -1) {
-            this.selectedTags = [key];
+          selectedKeys = [];
+          selectedTag = this.tags[this.tags.map(i => i.id).indexOf(key)];
+          if (selectedTag) {
+            selectedTags = [selectedTag.id];
             currentPlans = this.plans.filter(
               i => i.tags.map(i => i.id).indexOf(key) > -1
             );
+            title = selectedTag.title;
           }
           break;
       }
+      this.selectedTags = selectedTags;
+      this.selectedKeys = selectedKeys;
+
+      // console.log(menu, title);
+      this.$store.dispatch("setCurrentGroupKey", key);
+      this.$store.dispatch("setCurrentGroupTitle", title);
       this.$store.dispatch("setCurrentPlans", [...currentPlans]);
       console.log("2 成功更新计划列表页", currentPlans);
     }

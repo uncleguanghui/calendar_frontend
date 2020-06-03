@@ -31,6 +31,7 @@ export default new Vuex.Store({
       }
     ], // 计划分组
     currentGroupKey: "", // 当前选中的分组
+    currentGroupTitle: "", // 当前选中的分组名称
     currentPlanId: "", // 当前打开的计划 Id
     planTags: [], // 所有标签
     currentPlans: [], // 当前展开的所有计划，planDataFull 变化时会自动跟着变
@@ -216,6 +217,10 @@ export default new Vuex.Store({
     SETCURRENTGROUPKEY(state, key) {
       state.currentGroupKey = key;
     },
+    // 修改当前选中的分组标题
+    SETCURRENTGROUPTITLE(state, title) {
+      state.currentGroupTitle = title;
+    },
     // 获取当前所有计划
     GETPLANS(state) {
       return request({
@@ -320,6 +325,9 @@ export default new Vuex.Store({
     },
     setCurrentGroupKey({ commit }, key) {
       return commit("SETCURRENTGROUPKEY", key);
+    },
+    setCurrentGroupTitle({ commit }, title) {
+      return commit("SETCURRENTGROUPTITLE", title);
     },
     getPlans({ commit }) {
       return commit("GETPLANS");

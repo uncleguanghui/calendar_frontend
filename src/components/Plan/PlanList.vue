@@ -206,9 +206,7 @@ export default {
     let defaultActiveKey = []; // 默认展开的列，默认不展开已完成和已删除列
     return {
       scrollTop: 0, // 计划列表部分的滚动情况
-      currentPlanId: this.$store.state.currentPlanId, // 当前点击的计划ID
       groups: [], // 分组后的计划
-      groupKey: this.$store.state.currentGroupKey, // 当前选中的分组
       showCreationGroupKey: ["today", "recent"], // 要显示创建计划 input 的分组
       dayNames: ["日", "一", "二", "三", "四", "五", "六"],
       defaultActiveKey: defaultActiveKey, // 默认展开的 key
@@ -216,24 +214,28 @@ export default {
       publicPath: publicPath, // public 文件夹的位置
       selectedSortKey: ["time"], // 排序 menu 选中
       showDetail: true, // 是否显示详情
-      title: "",
       timeImage: publicPath + "svg/" + "降序-时间.svg",
       levelImage: publicPath + "svg/" + "降序-优先级.svg",
       emptyImage: publicPath + "svg/" + "Relax.svg"
     };
   },
-  watch: {
-    "$store.state.currentGroupKey": function(to) {
-      let planGroupMenu = this.$store.state.planGroupMenu;
-      let menu = planGroupMenu[planGroupMenu.map(i => i.key).indexOf(to)];
-      this.title = menu ? menu.name : "";
-      this.groupKey = to;
+  computed: {
+    // 当前选中的分组
+    groupKey() {
+      return this.$store.state.currentGroupKey;
     },
+    // 当前选中的分组标题
+    title() {
+      return this.$store.state.currentGroupTitle;
+    },
+    // 当前点击的计划ID
+    currentPlanId() {
+      return this.$store.state.currentGroupTitle;
+    }
+  },
+  watch: {
     "$store.state.currentPlans": function() {
       this.refreshCurrentGroups();
-    },
-    "$store.state.currentPlanId": function(to) {
-      this.currentPlanId = to;
     },
     selectedSortKey(from, to) {
       if (from[0] !== to[0]) {
