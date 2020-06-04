@@ -1,6 +1,7 @@
 import HTTPERROR from "@/mock/func/httpError";
 import moment from "moment";
 import { randomTags, getTagsByIds } from "./tags";
+import { randomList, getList } from "./lists";
 
 let Mock = require("mockjs");
 
@@ -190,7 +191,7 @@ function createAlarm() {
 function paresPlanObj(obj) {
   return {
     id: typeof obj.id === "string" ? obj.id : Mock.mock("@id"), // 计划ID
-    groupId: typeof obj.groupId === "string" ? obj.groupId : Mock.mock("@id"), //计划书ID
+    list: typeof obj.list === "string" ? getList(obj.list) : null, // 通过计划书ID获取最新计划
     title: typeof obj.title === "string" ? obj.title : "", // 标题，1~50字，默认空
     star: typeof obj.star === "boolean" ? obj.star : false, // 是否收藏，boolean，默认不收藏
     typeId: "life",
@@ -237,7 +238,7 @@ function paresPlanObj(obj) {
 function createPlan() {
   let plan = {
     id: Mock.mock("@id"), // 计划ID
-    groupId: Mock.mock("@id"), //计划书ID
+    list: randomList(), // 自定义清单
     title: Mock.mock("@ctitle(1, 30)"), // 标题，1~50字
     star: Mock.mock("@boolean"), // 是否收藏，boolean
     typeId: "life",
@@ -274,6 +275,7 @@ function getLatestPlans() {
   let plans_ = [...plans];
   plans_ = plans_.map(item => {
     item.tags = getTagsByIds(item.tags.map(tag => tag.id));
+    item.list = item.list ? getList(item.list.id) : null;
     return item;
   });
   plans = plans_;

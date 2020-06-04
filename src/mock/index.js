@@ -3,6 +3,7 @@ const Mock = require("mockjs");
 
 import ApiPlans from "./plans/index";
 import { ApiTags, ApiTag } from "./plans/tags";
+import { ApiLists, ApiList } from "./plans/lists";
 import ApiCalendar from "./calendar/index";
 import ApiWeather from "./weather/index";
 import ApiIllustration from "./illustration/index";
@@ -13,6 +14,8 @@ Mock.mock("/api/plans", /get|post/i, ApiPlans.Plans);
 Mock.mock(RegExp("/api/plans/.*"), /get|delete|put/i, ApiPlans.Plan);
 Mock.mock("/api/tags", /get|post/i, ApiTags);
 Mock.mock(RegExp("/api/tags/.*"), /get|delete|put/i, ApiTag);
+Mock.mock("/api/lists", /get|post/i, ApiLists);
+Mock.mock(RegExp("/api/lists/.*"), /get|delete|put/i, ApiList);
 Mock.mock(
   RegExp("/api/illustrations/load.*"),
   /get/i,

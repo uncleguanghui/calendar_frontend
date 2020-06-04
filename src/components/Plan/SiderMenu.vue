@@ -1,5 +1,6 @@
 <template>
   <div style="overflow: auto;">
+    <!-- 系统自带 -->
     <a-menu
       theme="light"
       mode="vertical"
@@ -26,6 +27,7 @@
         <a-menu-divider :key="groupId" />
       </template>
     </a-menu>
+    <!-- 标签 -->
     <a-collapse
       default-active-key=""
       :bordered="false"
@@ -71,6 +73,50 @@
         </a-menu>
       </a-collapse-panel>
     </a-collapse>
+    <!-- 用户自定义 -->
+    <a-collapse
+      default-active-key=""
+      :bordered="false"
+      :style="{ textAlign: 'left', backgroundColor: '#fff0' }"
+    >
+      <template #expandIcon="props">
+        <a-icon
+          type="caret-right"
+          :rotate="props.isActive ? 90 : 0"
+          style="color:#00000060"
+        />
+      </template>
+      <a-collapse-panel key="1" class="collapse-panel">
+        <span slot="header">
+          自定义
+        </span>
+        <plan-list-operation class="plan-num" slot="extra" />
+        <a-menu
+          theme="light"
+          mode="vertical"
+          v-model="selectedLists"
+          style="background-color: #fff0; border-right: none;"
+          @click="refreshCurrentPlans"
+        >
+          <a-menu-item
+            :key="list.id"
+            v-for="list in lists"
+            style="padding: 5px 0 5px 10px; line-height:1; height: 100%; margin: 0;"
+          >
+            <span class="hidden-input" style="max-width:100px;">
+              {{ list.title }}
+            </span>
+            <span
+              class="plan-num"
+              style="right: 0; top: 10px; position: absolute; "
+              v-if="planNumForLists[list.id]"
+            >
+              {{ planNumForLists[list.id] }}
+            </span>
+          </a-menu-item>
+        </a-menu>
+      </a-collapse-panel>
+    </a-collapse>
   </div>
 </template>
 
@@ -83,34 +129,42 @@
 // TODO: 增加自定义计划本
 // TODO: 整合日历，并将计划呈现在上面（这个最后做，要保证计划的各种操作都ok了）
 import PlanTagOperation from "@/components/Plan/Items/Tag/TagOperation";
+import PlanListOperation from "@/components/Plan/Items/List/ListOperation";
+
 export default {
-  components: { PlanTagOperation },
+  components: { PlanTagOperation, PlanListOperation },
   data() {
     let planGroupMenu = this.$store.state.planGroupMenu;
     let groupIds = [...new Set(planGroupMenu.map(i => i.groupId))].sort();
     return {
       selectedKeys: ["today"], // 默认选中的分组
       selectedTags: [], // 选中的标签
+      selectedLists: [], // 选中的自定义清单
       groupIds: groupIds, // 组
       planGroupMenu: planGroupMenu, // 计划侧边栏
-      tags: [...this.$store.state.planTags].sort(this.tagSort), // 排序后的标签
+      tags: [...this.$store.state.planTags].sort(this.objSort), // 排序后的标签
+      lists: [...this.$store.state.planLists].sort(this.objSort), // 排序后的自定义清单
       plans: [...this.$store.state.planDataFull] // 所有任务
     };
   },
   watch: {
     "$store.state.planTags": function(to) {
-      this.tags = [...to].sort(this.tagSort);
+      this.tags = [...to].sort(this.objSort);
+    },
+    "$store.state.planLists": function(to) {
+      this.lists = [...to].sort(this.objSort);
     },
     "$store.state.planDataFull": function(to) {
       this.plans = to;
 
       // 更新当前列表的数据
-      let key = this.selectedTags[0] || this.selectedKeys[0];
+      let key =
+        this.selectedLists[0] || this.selectedTags[0] || this.selectedKeys[0];
       this.refreshCurrentPlans({ key });
     }
   },
   computed: {
-    // 统计各优先级的数量（包括已删除的）
+    // 统计各标签的计划数量
     planNumForTags() {
       let res = {};
       for (let plan of this.plans) {
@@ -119,6 +173,20 @@ export default {
             res[tag.id] += 1;
           } else {
             res[tag.id] = 1;
+          }
+        }
+      }
+      return res;
+    },
+    // 统计各自定义清单的计划数量
+    planNumForLists() {
+      let res = {};
+      for (let plan of this.plans) {
+        if (plan.list) {
+          if (plan.list.id in res) {
+            res[plan.list.id] += 1;
+          } else {
+            res[plan.list.id] = 1;
           }
         }
       }
@@ -162,7 +230,7 @@ export default {
     }
   },
   methods: {
-    tagSort(a, b) {
+    objSort(a, b) {
       return a.title.localeCompare(b.title);
     },
     // 点击侧边栏，刷新数据——从所有计划中，筛选出当前页面需要展示的计划
@@ -174,7 +242,9 @@ export default {
       let title = menu ? menu.name : "";
       let selectedKeys = [key];
       let selectedTags = [];
+      let selectedLists = [];
       let selectedTag = undefined;
+      let selectedList = undefined;
 
       switch (key) {
         // 是否是分组的 key
@@ -202,9 +272,9 @@ export default {
         case "trash":
           currentPlans = this.plans.filter(i => i.belongTrash());
           break;
-        // 是否是标签的 key
         default:
           selectedKeys = [];
+          // 是否是标签的 key
           selectedTag = this.tags[this.tags.map(i => i.id).indexOf(key)];
           if (selectedTag) {
             selectedTags = [selectedTag.id];
@@ -212,9 +282,20 @@ export default {
               i => i.tags.map(i => i.id).indexOf(key) > -1
             );
             title = selectedTag.title;
+          } else {
+            // 是否是自定义清单的 key
+            selectedList = this.lists[this.lists.map(i => i.id).indexOf(key)];
+            if (selectedList) {
+              selectedLists = [selectedList.id];
+              currentPlans = this.plans.filter(
+                i => i.list && i.list.id === key
+              );
+              title = selectedList.title;
+            }
           }
           break;
       }
+      this.selectedLists = selectedLists;
       this.selectedTags = selectedTags;
       this.selectedKeys = selectedKeys;
 

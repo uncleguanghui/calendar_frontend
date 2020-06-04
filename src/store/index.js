@@ -34,6 +34,7 @@ export default new Vuex.Store({
     currentGroupTitle: "", // 当前选中的分组名称
     currentPlanId: "", // 当前打开的计划 Id
     planTags: [], // 所有标签
+    planLists: [], // 所有自定义清单
     currentPlans: [], // 当前展开的所有计划，planDataFull 变化时会自动跟着变
     planDataFull: [], // 所有计划，其变化会自动影响所有数据，包括 currentPlans 和当前打开的计划
     // 图标列表里，图标的位置是有讲究的，按从弱到强以及关联性排序（为了在弱匹配时能返回一个较正确的图标）
@@ -153,6 +154,61 @@ export default new Vuex.Store({
     westFestival: { "05-20": "母亲节", "06-30": "父亲节", "11-44": "感恩节" }
   },
   mutations: {
+    // 获取所有自定义清单
+    GETLISTS(state) {
+      return request({
+        url: `/api/lists`,
+        method: "get"
+      }).then(res => {
+        state.planLists = res.data;
+        console.log("4 成功获取所有自定义清单");
+      });
+    },
+
+    // 创建一个清单
+    CREATELIST(state, { title, color, hide }) {
+      return request({
+        url: `/api/lists`,
+        method: "post",
+        data: {
+          title: title,
+          hide: hide,
+          color: color || "#40a9ff" // 默认蓝色
+        }
+      }).then(res => {
+        // 更新清单
+        state.planLists = res.data;
+        console.log(`4 创建一个新自定义清单：${title}`);
+      });
+    },
+    // 更新一个清单
+    UPDATELIST(state, list) {
+      console.log("4 更新自定义清单内容", list);
+      return request({
+        url: `/api/lists/${list.id}`,
+        method: "put",
+        data: {
+          title: list.title,
+          color: list.color,
+          hide: list.hide
+        }
+      }).then(res => {
+        // 更新列表里的数据
+        let lists = [...state.planLists];
+        let listIndex = lists.map(i => i.id).indexOf(res.data.id);
+
+        if (listIndex > -1) {
+          let target = lists[listIndex];
+          for (let key in res.data) {
+            target[key] = res.data[key];
+          }
+          state.planLists = lists;
+          console.log("4 单个自定义清单更新完成", target);
+        } else {
+          console.warn("4 未找到目标自定义清单");
+        }
+      });
+    },
     // 获取所有标签
     GETTAGS(state) {
       return request({
@@ -308,6 +364,15 @@ export default new Vuex.Store({
     }
   },
   actions: {
+    getLists({ commit }) {
+      return commit("GETLISTS");
+    },
+    createList({ commit }, data) {
+      return commit("CREATELIST", data);
+    },
+    updateList({ commit }, list) {
+      return commit("UPDATELIST", list);
+    },
     getTags({ commit }) {
       return commit("GETTAGS");
     },

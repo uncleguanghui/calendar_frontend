@@ -44,7 +44,7 @@
             :open.sync="startOpen"
           >
             <!-- 时间选择组件中的自定义按钮 -->
-            <div style="height:40px" slot="addon">
+            <div style="height:25px" slot="addon">
               <a-button
                 size="small"
                 type="primary"
