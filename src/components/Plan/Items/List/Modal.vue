@@ -19,32 +19,42 @@
       placeholder="请选择清单"
     >
       <a-select-option :value="list.id" :key="list.id" v-for="list in listsAll">
-        <div
-          :style="{
-            borderLeft: '1px solid ' + list.color,
-            display: 'inline-block'
-          }"
-        >
-          {{ list.title }}
+        <div>
+          <div
+            :style="{
+              borderLeft: '4px solid ' + list.color,
+              paddingLeft: '10px',
+              display: 'inline-block'
+            }"
+          >
+            {{ list.title }}
+          </div>
+          <div style="float: right; padding: 0 10px 0 20px">
+            <a-icon v-if="list.hide" type="eye-invisible" />
+            <a-icon v-else type="eye" />
+          </div>
         </div>
       </a-select-option>
     </a-select>
     <div v-if="mode === 'create' || (mode === 'edit' && listId)">
-      <div style="width: 100%; text-align: center;">
-        <a-input
-          class="title-input"
-          placeholder="请输入清单名称"
-          v-model="title"
-          :style="{
-            background: color,
-            '--border-color': color + '80',
-            '--box-shadow': '0 0 0 2px ' + color + '20'
-          }"
-        />
-      </div>
-      <div style="padding: 20px 0 10px 0; display: inline-block">
-        <color-list v-model="color" />
-      </div>
+      <a-form>
+        <a-form-item label="名称" v-bind="formItemLayout">
+          <a-input
+            style="width:100%"
+            placeholder="请输入清单名称"
+            v-model="title"
+          />
+        </a-form-item>
+        <a-form-item label="颜色" v-bind="formItemLayout">
+          <color-list v-model="color" />
+        </a-form-item>
+        <a-form-item label="隐藏" v-bind="formItemLayout">
+          <a-switch v-model="hide" />
+          <p style="line-height: 1.5;color: #a9a9a9;font-size: 10px;">
+            启用后，该清单中的任务将不会显示在除了“我的收藏”以外的系统清单中，不过到期的任务仍然会提醒。
+          </p>
+        </a-form-item>
+      </a-form>
     </div>
   </a-modal>
 </template>
@@ -71,9 +81,14 @@ export default {
   },
   data() {
     return {
+      formItemLayout: {
+        labelCol: { span: 4 },
+        wrapperCol: { span: 20 }
+      },
       visible: this.value,
       title: "",
       color: "#03a9f4", // 创建清单时选中的颜色
+      hide: false, // 创建清单时的隐藏选项
       listId: undefined // 编辑清单时选中的清单ID
     };
   },
@@ -90,6 +105,7 @@ export default {
         console.log("当前选中清单为", to);
         this.title = to.title;
         this.color = to.color;
+        this.hide = to.hide;
       }
     }
   },
@@ -111,6 +127,7 @@ export default {
     reset() {
       this.title = "";
       this.color = "#03a9f4";
+      this.hide = false;
       this.listId = undefined;
     },
     // 点击确定
@@ -129,6 +146,7 @@ export default {
       } else {
         this.$store.dispatch("createList", {
           title: this.title,
+          hide: this.hide,
           color: this.color
         });
       }
@@ -139,14 +157,16 @@ export default {
         this.$notification.warn({ message: "请输入清单名" });
       } else if (
         this.title === this.pickedList.title &&
-        this.color === this.pickedList.color
+        this.color === this.pickedList.color &&
+        this.hide === this.pickedList.hide
       ) {
         console.log("清单没有任何变化");
       } else {
         this.$store.dispatch("updateList", {
           id: this.pickedList.id,
           title: this.title,
-          color: this.color
+          color: this.color,
+          hide: this.hide
         });
       }
     },
@@ -158,22 +178,4 @@ export default {
 };
 </script>
 
-<style scoped>
-.title-input {
-  width: 100%;
-  color: #fff;
-  text-align: center;
-}
-
-.title-input:hover {
-  border-color: var(--border-color);
-}
-.title-input:focus {
-  border-color: var(--border-color);
-  box-shadow: var(--box-shadow);
-}
-
-.title-input::placeholder {
-  color: #ffffff80;
-}
-</style>
+<style scoped></style>

@@ -16,18 +16,18 @@ export default new Vuex.Store({
         icon: "star",
         name: "我的收藏",
         iconColor: "#ffc53d",
-        groupId: 1
+        groupId: 2
       },
-      { key: "going", icon: "profile", name: "进行中", groupId: 2 },
-      { key: "undated", icon: "book", name: "无限期", groupId: 2 },
-      { key: "expired", icon: "clock-circle", name: "已过期", groupId: 2 },
-      { key: "finished", icon: "check-circle", name: "已完成", groupId: 2 },
+      { key: "going", icon: "profile", name: "进行中", groupId: 3 },
+      { key: "undated", icon: "book", name: "无限期", groupId: 3 },
+      { key: "expired", icon: "clock-circle", name: "已过期", groupId: 3 },
+      { key: "finished", icon: "check-circle", name: "已完成", groupId: 3 },
       {
         key: "trash",
         icon: "delete",
         name: "已删除",
         hideNum: true,
-        groupId: 2
+        groupId: 3
       }
     ], // 计划分组
     currentGroupKey: "", // 当前选中的分组

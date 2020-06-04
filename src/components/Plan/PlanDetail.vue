@@ -101,7 +101,12 @@
 </template>
 
 <script>
+// 样式
+// TODO: 在外部编辑完标签（如颜色）后，详情页里没有同步
+
+// 功能
 // TODO: 增加任务的复制功能（优先级较低，非必要不做）
+// TODO: 增加前端限制 + 后端校验：对于各种input和标签名称，前端限制长度，后端校验并分割；对于各种select，前后端校验；对于各种数量（如子任务数量、标签数量），前后端均限制数量
 
 import PlanTag from "./Items/Tag/TagTile";
 import PlanTime from "./Items/Time";

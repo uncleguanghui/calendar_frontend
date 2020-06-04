@@ -119,7 +119,8 @@
               :key="plan.id"
               v-for="plan in group.options"
               :style="{
-                backgroundColor: currentPlanId === plan.id ? '#40a9ff24' : ''
+                backgroundColor: currentPlanId === plan.id ? '#40a9ff24' : '',
+                borderLeft: plan.list ? '4px solid ' + plan.list.color : 'none'
               }"
             >
               <!-- 选择框 -->
@@ -190,8 +191,11 @@
 <script>
 // 样式
 // TODO: 根据屏幕大小，来响应式地显示或隐藏组件
+// TODO: title 过长隐藏
+// TODO: 增加一个设置按钮，以便于在自定义清单内部，修改清单的显示状态
 
 // 功能
+// TODO: 记忆用户的各种偏好设置，如标签的展开情况等，并缓存。
 // TODO: 增加按标题排序
 // TODO: 默认展开全部（主要目的是看看如何在切换侧边栏时过渡效果不那么强烈）
 // TODO: 当详情数据发生变动时，所测对应的数据并没有及时更新（如描述、日期、优先级等）
@@ -230,7 +234,7 @@ export default {
     },
     // 当前点击的计划ID
     currentPlanId() {
-      return this.$store.state.currentGroupTitle;
+      return this.$store.state.currentPlanId;
     }
   },
   watch: {

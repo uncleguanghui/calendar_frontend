@@ -103,9 +103,16 @@
             v-for="list in lists"
             style="padding: 5px 0 5px 10px; line-height:1; height: 100%; margin: 0;"
           >
-            <span class="hidden-input" style="max-width:100px;">
+            <div
+              class="hidden-input"
+              :style="{
+                maxWidth: '120px',
+                borderLeft: '4px solid ' + list.color,
+                padding: '7px 0 7px 10px'
+              }"
+            >
               {{ list.title }}
-            </span>
+            </div>
             <span
               class="plan-num"
               style="right: 0; top: 10px; position: absolute; "
@@ -123,10 +130,12 @@
 <script>
 // 样式
 // TODO: 缩小间距
+// TODO: 不允许标签或自定义清单颜色被取消选择
 
 // 功能
 // TODO: 增加计划的拖动功能
-// TODO: 增加自定义计划本
+// TODO: 增加自定义清单，并支持移动计划到其他清单中
+// TODO: 支持标签和自定义计划本的删除
 // TODO: 整合日历，并将计划呈现在上面（这个最后做，要保证计划的各种操作都ok了）
 import PlanTagOperation from "@/components/Plan/Items/Tag/TagOperation";
 import PlanListOperation from "@/components/Plan/Items/List/ListOperation";

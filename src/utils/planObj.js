@@ -5,7 +5,7 @@ export default function(plan) {
 
   // 基础属性
   obj.id = plan.id;
-  obj.groupId = plan.groupId;
+  obj.list = plan.list;
   obj.title = plan.title;
   obj.star = plan.star;
   obj.advancedDays = plan.advancedDays;
@@ -84,7 +84,7 @@ export default function(plan) {
   };
 
   // 分组1
-  // 属于今天分组：未删除，非已完成，非无限期，已过期或开始时间（或结束时间/完成时间）在今天0点~明天0点
+  // 属于今天分组：未删除，非已完成，非无限期，已过期或开始时间（或结束时间/完成时间）在今天0点~明天0点，若有归属清单则清单需设置为不隐藏
   obj.belongToday = function() {
     const today0 = moment().startOf("day");
     const tomorrow0 = moment()
@@ -103,10 +103,11 @@ export default function(plan) {
           obj.startDate < tomorrow0) ||
         (obj.finishDate._isValid &&
           obj.finishDate >= today0 &&
-          obj.finishDate < tomorrow0))
+          obj.finishDate < tomorrow0)) &&
+      (!obj.list || (obj.list && !obj.list.hide))
     );
   };
-  // 属于最近分组：未删除，非已完成，非无限期，已过期或开始时间（或结束时间/完成时间）在今天0点~7天后的0点
+  // 属于最近分组：未删除，非已完成，非无限期，已过期或开始时间（或结束时间/完成时间）在今天0点~7天后的0点，若有归属清单则清单需设置为不隐藏
   obj.belongRecent = function() {
     const today0 = moment().startOf("day");
     const future0 = moment()
@@ -125,34 +126,53 @@ export default function(plan) {
           obj.startDate < future0) ||
         (obj.finishDate._isValid &&
           obj.finishDate >= today0 &&
-          obj.finishDate < future0))
+          obj.finishDate < future0)) &&
+      (!obj.list || (obj.list && !obj.list.hide))
     );
   };
+
+  // 分组2
   // 属于收藏分组：未删除，且状态为收藏
   obj.belongStar = function() {
     return !obj.isDeleted && obj.star;
   };
 
-  // 分组2
-  // 属于无限期分组：未删除，无限期
+  // 分组3
+  // 属于无限期分组：未删除，无限期，若有归属清单则清单需设置为不隐藏
   obj.belongUndated = function() {
-    return !obj.isDeleted && obj.isUndated();
+    return (
+      !obj.isDeleted &&
+      obj.isUndated() &&
+      (!obj.list || (obj.list && !obj.list.hide))
+    );
   };
-  // 属于进行中分组：未删除，进行中
+  // 属于进行中分组：未删除，进行中，若有归属清单则清单需设置为不隐藏
   obj.belongGoing = function() {
-    return !obj.isDeleted && obj.isGoing();
+    return (
+      !obj.isDeleted &&
+      obj.isGoing() &&
+      (!obj.list || (obj.list && !obj.list.hide))
+    );
   };
-  // 属于已过期分组：未删除，已过期
+  // 属于已过期分组：未删除，已过期，若有归属清单则清单需设置为不隐藏
   obj.belongExpired = function() {
-    return !obj.isDeleted && obj.isExpired();
+    return (
+      !obj.isDeleted &&
+      obj.isExpired() &&
+      (!obj.list || (obj.list && !obj.list.hide))
+    );
   };
-  // 属于已完成分组：未删除，已完成
+  // 属于已完成分组：未删除，已完成，若有归属清单则清单需设置为不隐藏
   obj.belongFinished = function() {
-    return !obj.isDeleted && obj.isFinished();
+    return (
+      !obj.isDeleted &&
+      obj.isFinished() &&
+      (!obj.list || (obj.list && !obj.list.hide))
+    );
   };
-  // 属于已删除分组：已删除
+  // 属于已删除分组：已删除，若有归属清单则清单需设置为不隐藏
   obj.belongTrash = function() {
-    return obj.isDeleted;
+    return obj.isDeleted && (!obj.list || (obj.list && !obj.list.hide));
   };
 
   return obj;

@@ -54,6 +54,7 @@ export default {
   mounted() {
     this.$store.dispatch("getPlans");
     this.$store.dispatch("getTags");
+    this.$store.dispatch("getLists");
   }
 };
 </script>
